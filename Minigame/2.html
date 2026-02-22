@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Equation Hunter 3D</title>
+
+<style>
+body{
+    margin:0;
+    background:#0b1020;
+    color:white;
+    font-family:Arial;
+    text-align:center;
+    overflow:hidden;
+}
+.screen{
+    position:absolute;
+    width:100%;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    background:#0b1020;
+}
+button{
+    padding:10px 20px;
+    margin:10px;
+    font-size:18px;
+    cursor:pointer;
+}
+canvas{
+    display:none;
+    background:#000;
+}
+#hud{
+    position:absolute;
+    top:10px;
+    left:10px;
+    font-size:18px;
+}
+</style>
+</head>
+<body>
+
+<!-- START SCREEN -->
+<div id="startScreen" class="screen">
+    <h1>Equation Hunter</h1>
+    <p>Systems of Equations Adventure</p>
+    <button onclick="startGame('easy')">Easy</button>
+    <button onclick="startGame('hard')">Hard</button>
+</div>
+
+<!-- GAME OVER -->
+<div id="gameOver" class="screen" style="display:none;">
+    <h1>Game Over</h1>
+    <h2 id="finalScore"></h2>
+    <button onclick="location.reload()">Restart</button>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+<div id="hud"></div>
+
+<audio id="scoreSound">
+<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_32f4a0d33e.mp3">
+</audio>
+
+<script>
+
+let canvas=document.getElementById("gameCanvas");
+let ctx=canvas.getContext("2d");
+let hud=document.getElementById("hud");
+
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+
+let player={x:canvas.width/2,y:canvas.height/2,size:15};
+let score=0;
+let speed=1;
+let level=1;
+let solution={x:0,y:0};
+let gameMode="linear3";
+
+function startGame(diff){
+    document.getElementById("startScreen").style.display="none";
+    canvas.style.display="block";
+
+    if(diff==="easy") speed=1;
+    if(diff==="hard") speed=2;
+
+    generateSolution();
+    gameLoop();
+}
+
+function generateSolution(){
+    solution.x=Math.random()*canvas.width;
+    solution.y=Math.random()*canvas.height;
+}
+
+function drawPlanes(){
+    ctx.strokeStyle="rgba(0,255,255,0.3)";
+    ctx.beginPath();
+    ctx.moveTo(0,solution.y);
+    ctx.lineTo(canvas.width,solution.y);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(solution.x,0);
+    ctx.lineTo(solution.x,canvas.height);
+    ctx.stroke();
+
+    ctx.strokeStyle="rgba(255,0,255,0.3)";
+    ctx.beginPath();
+    ctx.moveTo(0,canvas.height-solution.y);
+    ctx.lineTo(canvas.width,canvas.height-solution.y);
+    ctx.stroke();
+}
+
+function drawNonLinear(){
+    ctx.strokeStyle="rgba(255,165,0,0.4)";
+    ctx.beginPath();
+    for(let x=0;x<canvas.width;x+=5){
+        let y=0.0005*(x-canvas.width/2)*(x-canvas.width/2)+solution.y-100;
+        ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+}
+
+function update(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    if(level===1){
+        drawPlanes();   // 3 linear equations
+    }else{
+        drawPlanes();
+        drawNonLinear();  // linear + non-linear
+    }
+
+    ctx.fillStyle="yellow";
+    ctx.beginPath();
+    ctx.arc(solution.x,solution.y,12,0,Math.PI*2);
+    ctx.fill();
+
+    ctx.fillStyle="cyan";
+    ctx.beginPath();
+    ctx.arc(player.x,player.y,player.size,0,Math.PI*2);
+    ctx.fill();
+
+    if(Math.abs(player.x-solution.x)<15 && Math.abs(player.y-solution.y)<15){
+        score+=10;
+        document.getElementById("scoreSound").play();
+        generateSolution();
+
+        if(score>=50){
+            level=2;
+            speed+=0.5;
+        }
+    }
+
+    solution.y+=speed;
+
+    if(solution.y>canvas.height){
+        endGame();
+    }
+
+    hud.innerHTML="Score: "+score+" | Level: "+level;
+}
+
+function gameLoop(){
+    update();
+    requestAnimationFrame(gameLoop);
+}
+
+document.addEventListener("keydown",e=>{
+    if(e.key==="ArrowUp") player.y-=15;
+    if(e.key==="ArrowDown") player.y+=15;
+    if(e.key==="ArrowLeft") player.x-=15;
+    if(e.key==="ArrowRight") player.x+=15;
+});
+
+function endGame(){
+    canvas.style.display="none";
+    document.getElementById("gameOver").style.display="flex";
+    document.getElementById("finalScore").innerText="Final Score: "+score;
+}
+
+</script>
+
+</body>
+</html>
