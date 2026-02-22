@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>System of Equations Arena · Device Lock</title>
+<style>
+    * {
+        box-sizing: border-box;
+    }
+    body {
+        margin: 0;
+        background: #0f172a;
+        color: white;
+        font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+        overflow: hidden;
+        text-align: center;
+    }
+    .screen {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: #0f172a;
+        z-index: 10;
+        padding: 20px;
+    }
+    button {
+        padding: 12px 30px;
+        margin: 8px;
+        font-size: 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        background: #3b82f6;
+        border: none;
+        border-radius: 40px;
+        color: white;
+        box-shadow: 0 6px 0 #1e3a8a;
+        transition: 0.08s linear;
+        border: 1px solid #93c5fd;
+    }
+    button:active {
+        transform: translateY(4px);
+        box-shadow: 0 2px 0 #1e3a8a;
+    }
+    button.secondary {
+        background: #334155;
+        box-shadow: 0 6px 0 #1e293b;
+    }
+    canvas {
+        display: none;
+        background: #0b1120;
+        width: 100%;
+        height: 100%;
+    }
+    #hud {
+        position: absolute;
+        top: 18px;
+        left: 20px;
+        font-size: 1.25rem;
+        background: #1e293bdd;
+        padding: 10px 25px;
+        border-radius: 60px;
+        backdrop-filter: blur(5px);
+        border: 1px solid #facc15;
+        color: #facc15;
+        font-weight: 600;
+        z-index: 20;
+        box-shadow: 0 0 15px #00000055;
+    }
+    #historyPanel {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: #111827dd;
+        backdrop-filter: blur(5px);
+        border: 1px solid #3b82f6;
+        border-radius: 24px;
+        padding: 15px 20px;
+        width: 260px;
+        max-height: 70vh;
+        overflow-y: auto;
+        color: #e2e8f0;
+        font-size: 0.95rem;
+        z-index: 25;
+        box-shadow: 0 0 25px #00000080;
+        scrollbar-width: thin;
+        scrollbar-color: #facc15 #334155;
+    }
+    #historyPanel h3 {
+        margin: 0 0 12px 0;
+        color: #facc15;
+        border-bottom: 1px solid #3b82f6;
+        padding-bottom: 6px;
+        font-size: 1.3rem;
+    }
+    #historyList {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    #historyList li {
+        padding: 8px 6px;
+        border-bottom: 1px dashed #4b5563;
+        display: flex;
+        justify-content: space-between;
+        font-weight: 400;
+    }
+    #historyList .history-name {
+        color: #a5f3fc;
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #historyList .history-score {
+        color: #facc15;
+        font-weight: 600;
+    }
+    #leaderboardScreen {
+        background: #0b1120;
+    }
+    #leaderboardList {
+        list-style: none;
+        padding: 0;
+        font-size: 1.6rem;
+        background: #1f2937;
+        padding: 30px 60px;
+        border-radius: 32px;
+        border: 2px solid #facc15;
+        min-width: 320px;
+    }
+    #leaderboardList li {
+        margin: 12px 0;
+        border-bottom: 1px solid #4b5563;
+    }
+    #historyFullList {
+        max-height: 400px;
+        overflow-y: auto;
+        width: 80%;
+        background: #1e293b;
+        border-radius: 28px;
+        padding: 20px 30px;
+        border: 1px solid #facc15;
+        text-align: left;
+        font-size: 1.3rem;
+    }
+    .history-entry {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 12px;
+        border-bottom: 1px dotted #3b82f6;
+    }
+    .history-entry span:first-child { color: #7dd3fc; }
+    .history-entry span:last-child { color: #facc15; font-weight: 600; }
+    h1 {
+        font-size: 3rem;
+        color: #facc15;
+        text-shadow: 0 0 10px #fbbf24;
+    }
+    #deviceIdDisplay {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        color: #64748b;
+        font-size: 0.8rem;
+        background: #1e293b80;
+        padding: 4px 12px;
+        border-radius: 20px;
+    }
+</style>
+</head>
+<body>
+
+<!-- HOME SCREEN -->
+<div id="startScreen" class="screen">
+    <h1>⚡ EQUATIONS ARENA</h1>
+    <p style="margin-bottom: 20px; font-size: 1.3rem;">catch the yellow intersection · arrow keys</p>
+    <button onclick="registerPlayer()">🚀 REGISTER & START</button>
+    <button class="secondary" onclick="showLeaderboard()">🏆 TOP 5 LEADERBOARD</button>
+    <button class="secondary" onclick="showFullHistory()">📜 ALL HISTORY</button>
+    <div id="deviceIdDisplay"></div>
+</div>
+
+<!-- GAME OVER SCREEN -->
+<div id="gameOverScreen" class="screen" style="display:none;">
+    <h1>GAME OVER</h1>
+    <h2 id="finalScore" style="color:#facc15;">0</h2>
+    <button onclick="restartFromGameOver()">🔄 PLAY AGAIN</button>
+    <button class="secondary" onclick="goToHome()">🏠 MAIN MENU</button>
+</div>
+
+<!-- LEADERBOARD (TOP 5) SCREEN -->
+<div id="leaderboardScreen" class="screen" style="display:none;">
+    <h2>🏅 TOP 5 PLAYERS</h2>
+    <ol id="leaderboardList" style="list-style-type: decimal; list-style-position: inside;"></ol>
+    <button class="secondary" onclick="showFullHistory()">📜 VIEW FULL HISTORY</button>
+    <button onclick="goToHome()">◀ BACK TO MENU</button>
+</div>
+
+<!-- FULL HISTORY SCREEN -->
+<div id="historyScreen" class="screen" style="display:none;">
+    <h2>📋 COMPLETE HISTORY</h2>
+    <div id="historyFullList"></div>
+    <button onclick="goToHome()">🔙 BACK TO MENU</button>
+</div>
+
+<canvas id="gameCanvas"></canvas>
+<div id="hud"></div>
+
+<!-- persistent history panel (visible during gameplay) -->
+<div id="historyPanel" style="display: none;">
+    <h3>📋 recent history</h3>
+    <ul id="historyList"></ul>
+</div>
+
+<script>
+(function() {
+    // ===== LOCALSTORAGE KEYS =====
+    const STORAGE_KEY = 'equations_global_history';
+    const DEVICE_KEY = 'equations_device_id';
+    const DEVICE_NAME_KEY = 'equations_device_name';
+
+    // ===== DOM elements =====
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const hud = document.getElementById('hud');
+    const startScreen = document.getElementById('startScreen');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const leaderboardScreen = document.getElementById('leaderboardScreen');
+    const historyScreen = document.getElementById('historyScreen');
+    const finalScoreSpan = document.getElementById('finalScore');
+    const leaderboardList = document.getElementById('leaderboardList');
+    const historyFullDiv = document.getElementById('historyFullList');
+    const historyPanel = document.getElementById('historyPanel');
+    const historyListUl = document.getElementById('historyList');
+    const deviceIdDisplay = document.getElementById('deviceIdDisplay');
+
+    // ===== GLOBAL STATE =====
+    let player = { x: window.innerWidth/2, y: window.innerHeight/2, size: 16 };
+    let lines = [];
+    let score = 0;
+    let combo = 1;
+    let level = 1;
+    let difficultySpeed = 0.6;
+    let paused = false;
+    let playerName = null;
+
+    // ===== resize canvas =====
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        // Update player position on resize to keep in bounds
+        if (player) {
+            player.x = Math.min(canvas.width - 20, Math.max(20, player.x));
+            player.y = Math.min(canvas.height - 20, Math.max(20, player.y));
+        }
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    // ===== DEVICE ID MANAGEMENT =====
+    function getOrCreateDeviceId() {
+        let deviceId = localStorage.getItem(DEVICE_KEY);
+        if (!deviceId) {
+            deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem(DEVICE_KEY, deviceId);
+        }
+        return deviceId;
+    }
+
+    function getDeviceName() {
+        return localStorage.getItem(DEVICE_NAME_KEY);
+    }
+
+    function setDeviceName(name) {
+        localStorage.setItem(DEVICE_NAME_KEY, name);
+    }
+
+    const deviceId = getOrCreateDeviceId();
+    deviceIdDisplay.textContent = `Device: ${deviceId.substr(0, 8)}...`;
+
+    // ===== LOAD GLOBAL HISTORY FROM LOCALSTORAGE =====
+    function loadGlobalHistory() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            try {
+                return JSON.parse(stored);
+            } catch (e) {
+                return [];
+            }
+        }
+        return [];
+    }
+
+    // ===== SAVE GLOBAL HISTORY =====
+    function saveGlobalHistory(historyArray) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(historyArray));
+    }
+
+    // ===== UPDATE DEVICE'S HIGH SCORE =====
+    function updateDeviceHighScore(newScore) {
+        const deviceName = getDeviceName();
+        if (!deviceName) return;
+
+        const history = loadGlobalHistory();
+        const existingEntry = history.find(entry => entry.name === deviceName);
+        
+        if (existingEntry) {
+            if (newScore > existingEntry.score) {
+                existingEntry.score = newScore;
+                existingEntry.timestamp = Date.now();
+                existingEntry.deviceId = deviceId;
+            }
+        } else {
+            history.push({
+                name: deviceName,
+                score: newScore,
+                timestamp: Date.now(),
+                deviceId: deviceId
+            });
+        }
+        
+        history.sort((a, b) => b.score - a.score);
+        saveGlobalHistory(history);
+        return history;
+    }
+
+    // ===== CHECK IF NAME IS AVAILABLE =====
+    function isNameAvailable(name) {
+        const history = loadGlobalHistory();
+        return !history.some(entry => entry.name === name);
+    }
+
+    // ===== REGISTER DEVICE WITH NAME =====
+    function registerDeviceName(name) {
+        if (!name) return false;
+        
+        const history = loadGlobalHistory();
+        if (history.some(entry => entry.name === name)) {
+            return false;
+        }
+        
+        setDeviceName(name);
+        
+        history.push({
+            name: name,
+            score: 0,
+            timestamp: Date.now(),
+            deviceId: deviceId
+        });
+        
+        history.sort((a, b) => b.score - a.score);
+        saveGlobalHistory(history);
+        return true;
+    }
+
+    // ===== GO TO HOME =====
+    window.goToHome = function() {
+        startScreen.style.display = 'flex';
+        gameOverScreen.style.display = 'none';
+        leaderboardScreen.style.display = 'none';
+        historyScreen.style.display = 'none';
+        canvas.style.display = 'none';
+        historyPanel.style.display = 'none';
+        
+        deviceIdDisplay.textContent = `Device: ${deviceId.substr(0, 8)}...`;
+    };
+
+    // ===== REGISTER =====
+    window.registerPlayer = function() {
+        const existingName = getDeviceName();
+        
+        if (existingName) {
+            playerName = existingName;
+            startGame();
+            return;
+        }
+        
+        let name = prompt('Enter your unique player name (one per device):');
+        if (!name) {
+            alert('Name cannot be empty.');
+            return;
+        }
+        
+        name = name.trim();
+        
+        if (!isNameAvailable(name)) {
+            alert(`Name "${name}" is already taken by another device. Please choose a different name.`);
+            return;
+        }
+        
+        if (registerDeviceName(name)) {
+            playerName = name;
+            startGame();
+        } else {
+            alert('Registration failed. Please try again.');
+        }
+    };
+
+    // ===== START GAME =====
+    function startGame() {
+        // Reset gameplay
+        score = 0;
+        combo = 1;
+        level = 1;
+        difficultySpeed = 0.6;
+        player.x = canvas.width / 2;
+        player.y = canvas.height / 2;
+
+        // Get the registered name again to be safe
+        playerName = getDeviceName();
+        
+        if (!playerName) {
+            alert('Device not registered. Please register first.');
+            goToHome();
+            return;
+        }
+
+        // Hide all screens and show canvas
+        startScreen.style.display = 'none';
+        gameOverScreen.style.display = 'none';
+        leaderboardScreen.style.display = 'none';
+        historyScreen.style.display = 'none';
+        canvas.style.display = 'block';
+        historyPanel.style.display = 'block';
+
+        // Update history panel
+        updateHistoryPanel();
+
+        // Generate initial lines
+        generateLines();
+
+        // Make sure player is within bounds
+        player.x = Math.min(canvas.width - 20, Math.max(20, canvas.width / 2));
+        player.y = Math.min(canvas.height - 20, Math.max(20, canvas.height / 2));
+
+        // Start game loop if not running
+        if (!window._gameLoopRunning) {
+            window._gameLoopRunning = true;
+            gameLoop();
+        }
+    }
+
+    // ===== UPDATE SIDE PANEL =====
+    function updateHistoryPanel() {
+        const history = loadGlobalHistory();
+        const topFive = history.slice(0, 5);
+        
+        historyListUl.innerHTML = '';
+        if (topFive.length === 0) {
+            historyListUl.innerHTML = '<li style="justify-content:center;">— no games yet —</li>';
+        } else {
+            topFive.forEach(entry => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span class="history-name">${entry.name}</span> <span class="history-score">${entry.score}</span>`;
+                historyListUl.appendChild(li);
+            });
+        }
+    }
+
+    // ===== GENERATE LINES =====
+    function generateLines() {
+        lines = [
+            { m: Math.random() * 3.2 - 1.6, c: Math.random() * 4 - 2, offset: 0 },
+            { m: Math.random() * 3.2 - 1.6, c: Math.random() * 4 - 2, offset: 0 }
+        ];
+        while (Math.abs(lines[0].m - lines[1].m) < 0.25) {
+            lines[1].m = Math.random() * 3.2 - 1.6;
+        }
+    }
+
+    // ===== INTERSECTION =====
+    function getIntersection(l1, l2) {
+        const dm = l1.m - l2.m;
+        if (Math.abs(dm) < 0.0001) return null;
+        const dx = ((l2.c - l1.c) + (l2.offset/50 - l1.offset/50)) / dm;
+        const dy = l1.m * dx + l1.c;
+        const canvasX = canvas.width/2 + dx * 50;
+        const canvasY = canvas.height/2 - dy * 50 + l1.offset;
+        return { x: canvasX, y: canvasY };
+    }
+
+    // ===== DRAW =====
+    function draw() {
+        if (!playerName) {
+            endGame();
+            return;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        let linesGone = true;
+
+        lines.forEach(line => {
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            for (let eqX = -10; eqX <= 10; eqX += 0.5) {
+                const eqY = line.m * eqX + line.c;
+                const screenX = canvas.width/2 + eqX * 50;
+                const screenY = canvas.height/2 - eqY * 50 + line.offset;
+                if (eqX === -10) ctx.moveTo(screenX, screenY);
+                else ctx.lineTo(screenX, screenY);
+            }
+            ctx.stroke();
+
+            line.offset += 1.2 * difficultySpeed;
+            if (line.offset < canvas.height + 60) linesGone = false;
+        });
+
+        const inter = getIntersection(lines[0], lines[1]);
+
+        if (inter) {
+            ctx.fillStyle = '#facc15';
+            ctx.shadowColor = '#fbbf24';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.arc(inter.x, inter.y, 18, 0, Math.PI*2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            const dx = player.x - inter.x;
+            const dy = player.y - inter.y;
+            if (Math.hypot(dx, dy) < 24) {
+                score += 10 * combo;
+                combo++;
+                generateLines();
+
+                const newLevel = Math.floor(score / 40) + 1;
+                if (newLevel > level) {
+                    level = newLevel;
+                    difficultySpeed = 0.6 + (level-1) * 0.25;
+                }
+            }
+        } else {
+            generateLines();
+        }
+
+        if (linesGone) {
+            endGame();
+            return;
+        }
+
+        ctx.fillStyle = '#22d3ee';
+        ctx.shadowColor = '#22d3ee';
+        ctx.shadowBlur = 18;
+        ctx.beginPath();
+        ctx.arc(player.x, player.y, player.size, 0, Math.PI*2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        hud.innerHTML = `👤 ${playerName}  |  🏆 ${score}  |  🔥 x${combo}  |  📈 Lv.${level}`;
+    }
+
+    function gameLoop() {
+        if (canvas.style.display === 'block' && !paused) {
+            draw();
+        }
+        requestAnimationFrame(gameLoop);
+    }
+
+    // ===== CONTROLS =====
+    document.addEventListener('keydown', (e) => {
+        if (canvas.style.display !== 'block') return;
+        const step = 18;
+        if (e.key === 'ArrowUp') player.y = Math.max(20, player.y - step);
+        if (e.key === 'ArrowDown') player.y = Math.min(canvas.height - 20, player.y + step);
+        if (e.key === 'ArrowLeft') player.x = Math.max(20, player.x - step);
+        if (e.key === 'ArrowRight') player.x = Math.min(canvas.width - 20, player.x + step);
+        if (e.key.startsWith('Arrow')) e.preventDefault();
+    });
+
+    // ===== END GAME =====
+    function endGame() {
+        canvas.style.display = 'none';
+        historyPanel.style.display = 'none';
+        gameOverScreen.style.display = 'flex';
+        finalScoreSpan.innerText = `${score}`;
+
+        if (playerName) {
+            updateDeviceHighScore(score);
+            updateHistoryPanel();
+        }
+    }
+
+    // ===== RESTART FROM GAME OVER =====
+    window.restartFromGameOver = function() {
+        gameOverScreen.style.display = 'none';
+        startGame();
+    };
+
+    // ===== SHOW LEADERBOARD (top 5) =====
+    window.showLeaderboard = function() {
+        startScreen.style.display = 'none';
+        gameOverScreen.style.display = 'none';
+        canvas.style.display = 'none';
+        historyScreen.style.display = 'none';
+        leaderboardScreen.style.display = 'flex';
+        historyPanel.style.display = 'none';
+
+        const history = loadGlobalHistory();
+        const top5 = history.slice(0, 5);
+        
+        leaderboardList.innerHTML = '';
+        if (top5.length === 0) {
+            leaderboardList.innerHTML = '<li style="opacity:0.7;">— no scores yet —</li>';
+        } else {
+            top5.forEach((entry, idx) => {
+                const li = document.createElement('li');
+                li.textContent = `${idx+1}. ${entry.name}  —  ${entry.score}`;
+                leaderboardList.appendChild(li);
+            });
+        }
+    };
+
+    // ===== SHOW FULL HISTORY =====
+    window.showFullHistory = function() {
+        startScreen.style.display = 'none';
+        gameOverScreen.style.display = 'none';
+        canvas.style.display = 'none';
+        leaderboardScreen.style.display = 'none';
+        historyScreen.style.display = 'flex';
+        historyPanel.style.display = 'none';
+
+        const history = loadGlobalHistory();
+        historyFullDiv.innerHTML = '';
+        if (history.length === 0) {
+            historyFullDiv.innerHTML = '<p style="text-align:center; opacity:0.7;">📭 No game history yet.</p>';
+            return;
+        }
+        
+        history.forEach((entry, idx) => {
+            const date = new Date(entry.timestamp).toLocaleString();
+            const isCurrentDevice = entry.deviceId === deviceId;
+            const div = document.createElement('div');
+            div.className = 'history-entry';
+            div.innerHTML = `<span>${idx+1}. ${entry.name} ${isCurrentDevice ? '📱' : ''}</span> <span>${entry.score}</span> <span style="color:#94a3b8; font-size:0.8rem;">${date}</span>`;
+            historyFullDiv.appendChild(div);
+        });
+    };
+
+    // ===== INITIALIZE =====
+    function initialize() {
+        const existingName = getDeviceName();
+        if (existingName) {
+            playerName = existingName;
+            // Ensure device entry exists
+            const history = loadGlobalHistory();
+            const deviceEntry = history.find(entry => entry.name === existingName);
+            
+            if (!deviceEntry) {
+                history.push({
+                    name: existingName,
+                    score: 0,
+                    timestamp: Date.now(),
+                    deviceId: deviceId
+                });
+                history.sort((a, b) => b.score - a.score);
+                saveGlobalHistory(history);
+            }
+        }
+        deviceIdDisplay.textContent = `Device: ${deviceId.substr(0, 8)}...`;
+        
+        // Start game loop
+        window._gameLoopRunning = false;
+        gameLoop();
+    }
+
+    // Start everything
+    initialize();
+
+})();
+</script>
+</body>
+</html>
