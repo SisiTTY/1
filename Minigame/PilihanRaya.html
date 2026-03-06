@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulasi Tunku: Misi 1955</title>
+    <style>
+        :root { --merdeka-gold: #ffcc00; --royal-blue: #002366; --neutral: #f4f4f4; }
+        body { margin: 0; padding: 0; background: #1a1a1a; font-family: 'Times New Roman', serif; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+        #game-wrapper { position: relative; width: 900px; height: 600px; border: 10px double var(--merdeka-gold); background: #2c3e50; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        canvas { display: block; background: #34495e; }
+        .screen { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(0,0,0,0.9); z-index: 10; text-align: center; padding: 40px; }
+        .hidden { display: none !important; }
+        h1 { color: var(--merdeka-gold); font-size: 3rem; margin: 0; text-transform: uppercase; }
+        p { font-size: 1.2rem; line-height: 1.5; max-width: 600px; }
+        .btn-start { padding: 20px 50px; font-size: 1.5rem; background: var(--merdeka-gold); color: black; border: none; font-weight: bold; cursor: pointer; border-radius: 5px; margin-top: 20px; transition: 0.3s; }
+        .btn-start:hover { background: white; transform: scale(1.05); }
+        #stats-panel { position: absolute; top: 0; width: 100%; height: 60px; background: rgba(0,0,0,0.5); display: flex; justify-content: space-around; align-items: center; font-weight: bold; color: var(--merdeka-gold); border-bottom: 2px solid var(--merdeka-gold); }
+        .tunku-avatar { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); width: 80px; height: 100px; background: #fff; border-radius: 10px 10px 0 0; border: 3px solid var(--merdeka-gold); display: flex; justify-content: center; align-items: center; color: black; font-weight: bold; font-size: 0.8rem; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="game-wrapper">
+    <div id="stats-panel">
+        <span>PEMIMPIN: Tunku Abdul Rahman</span>
+        <span>MANDAT RAKYAT: <span id="score">0</span>%</span>
+        <span>FASA: <span id="phase-name">Rundingan</span></span>
+    </div>
+
+    <canvas id="gameCanvas" width="900" height="600"></canvas>
+    
+    <div id="tunku" class="tunku-avatar">TUNKU<br>ABDUL<br>RAHMAN</div>
+
+    <div id="start-screen" class="screen">
+        <h1>MISI KABINET 1955</h1>
+        <p>Assalamualaikum Tunku. British telah bersetuju untuk mengadakan Pilihan Raya Persekutuan yang pertama. <br><br>
+        Tugas Tunku: <br>
+        1. <b>Kumpul Peti Undi</b> untuk memenangi 51/52 kerusi.<br>
+        2. <b>Elak "Halangan Birokrasi"</b> yang melambatkan kemerdekaan.<br>
+        3. <b>Bentuk Kabinet</b> dengan mencapai 100% Mandat Rakyat.</p>
+        <button class="btn-start" id="startBtn">MULAKAN PERJUANGAN</button>
+    </div>
+
+    <div id="end-screen" class="screen hidden">
+        <h1 id="result-title">MERDEKA!</h1>
+        <p id="result-text"></p>
+        <button class="btn-start" onclick="location.reload()">ULANG SEJARAH</button>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const startBtn = document.getElementById('startBtn');
+    const tunkuDiv = document.getElementById('tunku');
+    
+    let score = 0;
+    let gameActive = false;
+    let phase = 1;
+    let items = [];
+    let tunkuX = 450;
+
+    // Audio Context
+    let audioCtx;
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    function playSound(freq, type) {
+        if(!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.2);
+    }
+
+    // Item Class
+    class HistoricalItem {
+        constructor() {
+            this.x = Math.random() * (canvas.width - 60) + 30;
+            this.y = -50;
+            this.speed = 3 + (phase * 1);
+            const roll = Math.random();
+            if (roll > 0.3) {
+                this.type = 'good';
+                this.label = phase === 1 ? "📜 Undi" : "💼 Kabinet";
+                this.color = "#ffcc00";
+            } else {
+                this.type = 'bad';
+                this.label = "🚫 Birokrasi";
+                this.color = "#ff4444";
+            }
+        }
+        update() { this.y += this.speed; }
+        draw() {
+            ctx.fillStyle = this.color;
+            ctx.fillRect(this.x - 40, this.y, 80, 40);
+            ctx.fillStyle = "black";
+            ctx.font = "bold 12px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText(this.label, this.x, this.y + 25);
+        }
+    }
+
+    // Control Tunku
+    window.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        tunkuX = e.clientX - rect.left;
+        tunkuDiv.style.left = tunkuX + 'px';
+    });
+
+    function spawnItems() {
+        if (!gameActive) return;
+        items.push(new HistoricalItem());
+        setTimeout(spawnItems, 1000 - (phase * 150));
+    }
+
+    function update() {
+        if (!gameActive) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Visual feedback for the "Proses Pilihan Raya"
+        ctx.fillStyle = "rgba(255,255,255,0.05)";
+        ctx.font = "100px Arial";
+        ctx.fillText(phase === 1 ? "1955" : "KABINET", 450, 350);
+
+        for (let i = items.length - 1; i >= 0; i--) {
+            items[i].update();
+            items[i].draw();
+
+            // Collision logic
+            if (items[i].y > 480 && items[i].y < 530 && Math.abs(items[i].x - tunkuX) < 50) {
+                if (items[i].type === 'good') {
+                    score += 5;
+                    playSound(500 + score, 'sine');
+                } else {
+                    score = Math.max(0, score - 10);
+                    playSound(150, 'square');
+                }
+                items.splice(i, 1);
+                document.getElementById('score').innerText = score;
+
+                // Phase transition
+                if (score >= 50 && phase === 1) {
+                    phase = 2;
+                    document.getElementById('phase-name').innerText = "Penubuhan Kabinet";
+                    playSound(800, 'triangle');
+                }
+                
+                if (score >= 100) endGame();
+            } else if (items[i].y > 600) {
+                items.splice(i, 1);
+            }
+        }
+        requestAnimationFrame(update);
+    }
+
+    function endGame() {
+        gameActive = false;
+        document.getElementById('end-screen').classList.remove('hidden');
+        document.getElementById('result-text').innerText = "Tunku, anda telah memenangi mandat 51/52 kerusi! Kabinet pertama telah dibentuk dengan Tunku sebagai Ketua Menteri. London sedang menunggu rundingan kemerdekaan anda.";
+    }
+
+    // THE FIX: Listen for click specifically
+    startBtn.addEventListener('click', function() {
+        initAudio();
+        document.getElementById('start-screen').classList.add('hidden');
+        gameActive = true;
+        score = 0;
+        phase = 1;
+        items = [];
+        spawnItems();
+        update();
+        playSound(440, 'sine');
+    });
+
+</script>
+</body>
+</html>
