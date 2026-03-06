@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diff-Runner: Tangent Mastery</title>
+    <style>
+        body { margin: 0; background: #1a1a2e; color: white; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        #game-container { position: relative; width: 800px; height: 600px; background: #16213e; border: 4px solid #4ecca3; border-radius: 10px; box-shadow: 0 0 20px rgba(78, 204, 163, 0.3); }
+        canvas { display: block; }
+        .ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; background: rgba(22, 33, 62, 0.9); transition: opacity 0.5s; }
+        .hidden { display: none; }
+        h1 { color: #4ecca3; font-size: 3rem; margin-bottom: 10px; }
+        p { text-align: center; max-width: 80%; line-height: 1.6; }
+        button { padding: 15px 40px; font-size: 1.2rem; background: #4ecca3; border: none; border-radius: 5px; cursor: pointer; color: #1a1a2e; font-weight: bold; margin-top: 20px; transition: transform 0.2s; }
+        button:hover { transform: scale(1.1); background: #45b791; }
+        #stats { position: absolute; top: 10px; left: 20px; font-weight: bold; font-size: 1.2rem; color: #4ecca3; pointer-events: none; }
+        #difficulty-label { position: absolute; top: 10px; right: 20px; color: #e94560; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <div id="stats">Stability: <span id="score">100</span>% | Points: <span id="points">0</span></div>
+    <div id="difficulty-label">Stage: First Derivative</div>
+
+    <div id="start-screen" class="ui-layer">
+        <h1>DIFF-RUNNER</h1>
+        <p>Master the **Rate of Change**. Use your <b>MOUSE</b> or <b>TOUCH</b> to move up and down. 
+        Moving changes your <b>Tangent Slope</b>. Match the slope of the curve to survive!</p>
+        <p><i>Concept: $\frac{dy}{dx}$ is the gradient of the tangent at a point.</i></p>
+        <button onclick="startGame()">START MISSION</button>
+    </div>
+
+    <div id="end-screen" class="ui-layer hidden">
+        <h1 style="color: #e94560;">STABILITY LOST</h1>
+        <p>You failed to maintain the First Derivative.</p>
+        <h2>Score: <span id="final-score">0</span></h2>
+        <button onclick="startGame()">TRY AGAIN</button>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const pointsEl = document.getElementById('points');
+    const diffLabel = document.getElementById('difficulty-label');
+
+    // Game State
+    let animationId;
+    let score = 100;
+    let points = 0;
+    let gameActive = false;
+    let time = 0;
+    let playerY = 300;
+    let playerSlope = 0;
+    let targetSlope = 0;
+
+    // Audio Context (Synthesized sounds)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(freq, type, duration) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function startGame() {
+        score = 100;
+        points = 0;
+        time = 0;
+        gameActive = true;
+        document.getElementById('start-screen').classList.add('hidden');
+        document.getElementById('end-screen').classList.add('hidden');
+        playSound(440, 'square', 0.2);
+        animate();
+    }
+
+    function gameOver() {
+        gameActive = false;
+        cancelAnimationFrame(animationId);
+        document.getElementById('end-screen').classList.remove('hidden');
+        document.getElementById('final-score').innerText = points;
+        playSound(150, 'sawtooth', 0.5);
+    }
+
+    window.addEventListener('mousemove', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        playerY = e.clientY - rect.top;
+        // Map Y position to slope (-2 to 2)
+        playerSlope = -((playerY - 300) / 100);
+    });
+
+    function getCurveY(x, t) {
+        // A complex wave representing the function f(x)
+        // Difficulty increases by adding more harmonic frequencies (Second Derivative complexity)
+        const difficulty = Math.min(points / 1000, 2);
+        let y = 100 * Math.sin(x * 0.005 + t * 0.02);
+        if (points > 200) y += 40 * Math.cos(x * 0.01 + t * 0.04);
+        if (points > 500) y += 20 * Math.sin(x * 0.02 + t * 0.06);
+        return y + 300;
+    }
+
+    function getDerivative(x, t) {
+        // Approximate derivative: [f(x+h) - f(x)] / h (Definition of limit)
+        const h = 0.1;
+        return (getCurveY(x + h, t) - getCurveY(x, t)) / h;
+    }
+
+    function animate() {
+        if (!gameActive) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        time++;
+        
+        // Draw Grid Lines (Application: Coordinate Geometry)
+        ctx.strokeStyle = '#1f2e4d';
+        ctx.beginPath();
+        for(let i=0; i<800; i+=50) { ctx.moveTo(i,0); ctx.lineTo(i,600); }
+        for(let i=0; i<600; i+=50) { ctx.moveTo(0,i); ctx.lineTo(800,i); }
+        ctx.stroke();
+
+        // Draw Main Function Curve
+        ctx.beginPath();
+        ctx.strokeStyle = '#4ecca3';
+        ctx.lineWidth = 3;
+        for (let x = 0; x < canvas.width; x++) {
+            const y = getCurveY(x, time);
+            if (x === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Target Point (Moving along the x-axis)
+        const targetX = 200;
+        const targetY = getCurveY(targetX, time);
+        targetSlope = -getDerivative(targetX, time); // Negative because canvas Y is inverted
+
+        // Draw Tangent Line (The Player's tool)
+        ctx.beginPath();
+        ctx.strokeStyle = '#e94560';
+        ctx.lineWidth = 4;
+        const lineLen = 60;
+        ctx.moveTo(targetX - lineLen, targetY + (playerSlope * lineLen));
+        ctx.lineTo(targetX + lineLen, targetY - (playerSlope * lineLen));
+        ctx.stroke();
+
+        // Draw Player Marker
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(targetX, targetY, 8, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Scoring Logic: Relation to First Derivative
+        const diff = Math.abs(playerSlope - targetSlope);
+        if (diff < 0.2) {
+            points += 1;
+            if (time % 60 === 0) playSound(800, 'sine', 0.05);
+        } else {
+            score -= 0.5;
+            if (time % 10 === 0) playSound(100, 'triangle', 0.02);
+        }
+
+        // Difficulty Progression (Application of Differentiation)
+        if (points > 500) diffLabel.innerText = "Stage: Second Derivative (Curvature)";
+        else if (points > 200) diffLabel.innerText = "Stage: Extreme Points (Stationary)";
+        else diffLabel.innerText = "Stage: First Derivative (Limits)";
+
+        scoreEl.innerText = Math.max(0, Math.floor(score));
+        pointsEl.innerText = points;
+
+        if (score <= 0) gameOver();
+        else animationId = requestAnimationFrame(animate);
+    }
+</script>
+
+</body>
+</html>
