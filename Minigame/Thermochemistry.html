@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Adaptive Thermochemistry AI | Smart Learning System</title>
+<style>
+* {
+    box-sizing: border-box;
+    user-select: none;
+}
+
+body {
+    font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    background: linear-gradient(145deg, #1a2a3a 0%, #0f1a24 100%);
+    min-height: 100vh;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* main card container */
+.game-container {
+    max-width: 900px;
+    width: 100%;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(3px);
+    border-radius: 56px;
+    padding: 20px;
+    box-shadow: 0 25px 45px rgba(0,0,0,0.3), inset 0 1px 2px rgba(255,255,255,0.1);
+}
+
+.screen {
+    background: rgba(255,255,255,0.96);
+    border-radius: 48px;
+    padding: 30px 24px;
+    transition: all 0.2s ease;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.screen {
+    display: none;
+}
+
+.active {
+    display: block;
+    animation: fadeSlide 0.35s ease-out;
+}
+
+@keyframes fadeSlide {
+    from {
+        opacity: 0;
+        transform: translateY(12px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, #c94f4f, #ff9f4a);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-top: 0;
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+}
+
+.sub {
+    color: #2c3e44;
+    font-weight: 500;
+    margin-bottom: 30px;
+    font-size: 1.1rem;
+}
+
+button {
+    background: linear-gradient(95deg, #2c3e66, #1b2b3e);
+    border: none;
+    padding: 12px 32px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 60px;
+    color: white;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s;
+    box-shadow: 0 5px 12px rgba(0,0,0,0.2);
+    margin: 12px 8px;
+}
+
+button:hover {
+    transform: scale(1.02);
+    background: linear-gradient(95deg, #3e557a, #233a4c);
+    box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+#questionBox {
+    background: #fef9f0;
+    border-radius: 42px;
+    padding: 20px 24px 28px;
+    box-shadow: 0 12px 28px rgba(0,0,0,0.1);
+    margin-top: 15px;
+}
+
+#question {
+    font-size: 1.65rem;
+    font-weight: 700;
+    color: #1e2f3a;
+    border-left: 6px solid #f39c12;
+    padding-left: 20px;
+    margin: 0 0 20px 0;
+    line-height: 1.3;
+}
+
+.option {
+    background: #ffffff;
+    margin: 12px 0;
+    padding: 14px 18px;
+    border-radius: 60px;
+    cursor: pointer;
+    border: 2px solid #e2e8f0;
+    font-weight: 500;
+    transition: all 0.18s;
+    color: #1e2f3a;
+    font-size: 1rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.option:hover {
+    background: #f1f5f9;
+    border-color: #f39c12;
+    transform: translateX(5px);
+}
+
+.correct {
+    background: #b9f6ca !important;
+    border-color: #2e7d32 !important;
+    color: #1b5e20;
+    font-weight: bold;
+    position: relative;
+}
+
+.wrong {
+    background: #ffcdd2 !important;
+    border-color: #c62828 !important;
+    text-decoration: line-through;
+    opacity: 0.9;
+}
+
+#explanation {
+    margin: 20px 0 12px;
+    background: #eef2ff;
+    padding: 14px 18px;
+    border-radius: 28px;
+    color: #004d73;
+    font-weight: 500;
+    border-left: 5px solid #ff9800;
+    text-align: left;
+}
+
+#score {
+    font-size: 1.6rem;
+    font-weight: bold;
+    background: #1f2e36;
+    display: inline-block;
+    padding: 6px 24px;
+    border-radius: 40px;
+    color: #ffd966;
+    margin-bottom: 12px;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.2), 0 2px 5px rgba(0,0,0,0.1);
+}
+
+#progressBar {
+    width: 100%;
+    height: 16px;
+    background: #cfdde6;
+    border-radius: 30px;
+    margin: 12px 0 6px;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px #00000020;
+}
+
+#progress {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #4caf7a, #2ecc71);
+    border-radius: 30px;
+    transition: width 0.25s ease;
+}
+
+#reportBox {
+    background: #fefaf5;
+    border-radius: 40px;
+    text-align: left;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+#reportContent {
+    font-size: 1rem;
+    line-height: 1.65;
+}
+
+.badge {
+    background: #ffb74d;
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 30px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #2c2c2c;
+}
+
+@media (max-width: 600px) {
+    .screen {
+        padding: 20px 16px;
+    }
+    #question {
+        font-size: 1.3rem;
+    }
+    .option {
+        padding: 10px 14px;
+    }
+    button {
+        padding: 8px 20px;
+    }
+}
+</style>
+</head>
+<body>
+<div class="game-container">
+    <div id="startScreen" class="screen active">
+        <div style="text-align:center;">
+            <h1>🔥 THERMOCHEM AI v2.0 🔥</h1>
+            <div class="sub">⚡ Adaptive intelligence | Master thermochemistry ⚡</div>
+            <div style="background:#e9ecef; border-radius: 60px; padding: 12px; width: 80%; margin: 20px auto;">
+                🧠 Smart difficulty & topic targeting • 25 adaptive questions • Performance analytics
+            </div>
+            <button onclick="startGame()" style="background:#d35400; font-size:1.3rem;">🚀 START LEARNING</button>
+        </div>
+    </div>
+
+    <div id="gameScreen" class="screen">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
+            <div id="score">🏆 Score: 0</div>
+            <div class="badge" id="difficultyTag">📊 Difficulty: Medium</div>
+        </div>
+        <div id="progressBar"><div id="progress"></div></div>
+        <div id="questionBox">
+            <h2 id="question"></h2>
+            <div id="options"></div>
+            <div id="explanation"></div>
+            <div style="display: flex; justify-content: flex-end;">
+                <button id="nextBtn" onclick="nextQuestion()" style="display:none; background:#2c5f2d;">➡ Next Question</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="endScreen" class="screen">
+        <h1 style="font-size:2rem;">📈 Quiz Mastered</h1>
+        <h2 id="finalScore" style="background:#2c3e66; display:inline-block; padding:8px 28px; border-radius:60px; color:#f7d44a;">Score: 0</h2>
+        <div id="reportBox" style="margin:25px auto; padding:20px 28px;">
+            <h2>📊 Detailed Performance Report</h2>
+            <div id="reportContent"></div>
+            <hr style="margin:20px 0;">
+            <div style="text-align:center;"><button onclick="location.reload()" style="background:#1f6392;">🔄 Play Again</button></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ---------- enhanced question bank with rich variety, adaptive depth ----------
+// Topic keys: exoEndo, deltaH, application, bond, diagram
+// Each question has difficulty metadata (1=easy,2=medium,3=hard) and full explanation.
+
+const questionBank = [
+    // EXOTHERMIC vs ENDOTHERMIC (exoEndo)
+    { topic: "exoEndo", difficulty: 1, text: "Which of the following is an EXOTHERMIC process?", options: ["Melting ice", "Photosynthesis", "Combustion of methane", "Boiling water"], correct: 2, explanation: "Combustion releases heat, making it exothermic. Melting & boiling absorb heat (endothermic)." },
+    { topic: "exoEndo", difficulty: 1, text: "Photosynthesis is classified as:", options: ["Exothermic", "Endothermic", "Isothermic", "Combustion"], correct: 1, explanation: "Photosynthesis absorbs sunlight energy → endothermic reaction." },
+    { topic: "exoEndo", difficulty: 2, text: "Which reaction feels HOT to the touch?", options: ["Thermal decomposition", "Evaporation", "Neutralisation (acid+base)", "Melting wax"], correct: 2, explanation: "Neutralisation releases heat (exothermic), so the container warms up." },
+    { topic: "exoEndo", difficulty: 2, text: "During respiration, glucose reacts with oxygen. This process is:", options: ["Endothermic (absorbs heat)", "Exothermic (releases heat)", "Neither", "Only occurs with catalyst"], correct: 1, explanation: "Cellular respiration releases energy (exothermic) that powers cells." },
+    { topic: "exoEndo", difficulty: 3, text: "A reaction has ΔH = +88 kJ/mol. Which statement is TRUE?", options: ["Heat is released", "Products have lower enthalpy", "Reaction is endothermic", "It's spontaneous always"], correct: 2, explanation: "Positive ΔH means heat absorbed → endothermic reaction." },
+    
+    // Delta H (deltaH)
+    { topic: "deltaH", difficulty: 1, text: "If ΔH is negative, the reaction is:", options: ["Exothermic", "Endothermic", "At equilibrium", "Non-spontaneous"], correct: 0, explanation: "Negative ΔH indicates net release of heat (exothermic)." },
+    { topic: "deltaH", difficulty: 1, text: "What does ΔH represent?", options: ["Activation energy", "Change in enthalpy", "Entropy change", "Heat capacity"], correct: 1, explanation: "ΔH = change in enthalpy (heat content) at constant pressure." },
+    { topic: "deltaH", difficulty: 2, text: "A reaction releases 250 kJ of heat. The ΔH value is:", options: ["+250 kJ", "-250 kJ", "0 kJ", "+125 kJ"], correct: 1, explanation: "Heat released → negative ΔH value." },
+    { topic: "deltaH", difficulty: 2, text: "In an endothermic reaction, the enthalpy of products is _______ reactants.", options: ["Lower than", "Higher than", "Equal to", "Unrelated to"], correct: 1, explanation: "Endothermic: products gain energy → higher enthalpy than reactants." },
+    { topic: "deltaH", difficulty: 3, text: "Given: ΔH_f°(H₂O) = -286 kJ/mol. Which is correct?", options: ["Formation of water is endothermic", "Water decomposition absorbs 286 kJ/mol", "ΔH is positive", "It's a physical change"], correct: 1, explanation: "Negative formation enthalpy means formation releases heat, so decomposition requires +286 kJ/mol (endothermic)." },
+    
+    // Applications (application)
+    { topic: "application", difficulty: 1, text: "Which device uses an endothermic reaction?", options: ["Hand warmer", "Cold pack (ammonium nitrate)", "Car engine", "Gas stove"], correct: 1, explanation: "Instant cold packs absorb heat via endothermic dissolution." },
+    { topic: "application", difficulty: 1, text: "Self-heating cans for coffee rely on:", options: ["Endothermic reaction", "Exothermic reaction", "Nuclear decay", "Magnetic induction"], correct: 1, explanation: "Exothermic reaction (like quicklime + water) releases heat to warm contents." },
+    { topic: "application", difficulty: 2, text: "Which real-world process is ENDOTHERMIC and used for cooling?", options: ["Burning wood", "Evaporation of sweat", "Rusting iron", "Explosives"], correct: 1, explanation: "Evaporation absorbs latent heat from skin → cooling effect." },
+    { topic: "application", difficulty: 2, text: "Why do athletes use instant ice packs after injury?", options: ["Exothermic reaction produces heat", "Endothermic reaction absorbs heat (cold therapy)", "Chemical releases nitrogen", "Reduces blood pressure"], correct: 1, explanation: "Endothermic salt dissolution rapidly drops temperature, reducing swelling." },
+    { topic: "application", difficulty: 3, text: "In blast furnaces, carbon reacts with O₂ to produce CO₂ and heat. This heat drives further reactions. The initial step is:", options: ["Endothermic to activate", "Exothermic providing energy", "Catalytic decomposition", "Electrolysis"], correct: 1, explanation: "Combustion of carbon is strongly exothermic, supplying energy for iron reduction." },
+    
+    // Bond Energy (bond)
+    { topic: "bond", difficulty: 1, text: "Breaking chemical bonds always:", options: ["Releases energy", "Absorbs energy", "Creates heat", "Neutralizes charge"], correct: 1, explanation: "Bond breaking requires energy input (endothermic step)." },
+    { topic: "bond", difficulty: 1, text: "Forming bonds is:", options: ["Exothermic", "Endothermic", "No energy change", "Only in gases"], correct: 0, explanation: "Bond formation releases energy (exothermic)." },
+    { topic: "bond", difficulty: 2, text: "If bond energy of H-H is 436 kJ/mol, how much energy is needed to break 2 moles of H-H?", options: ["436 kJ", "872 kJ", "218 kJ", "654 kJ"], correct: 1, explanation: "2 × 436 kJ = 872 kJ to break 2 moles of H-H bonds." },
+    { topic: "bond", difficulty: 2, text: "In an exothermic reaction, total energy released in bond formation is _______ energy absorbed in bond breaking.", options: ["Less than", "Greater than", "Equal to", "Irrelevant"], correct: 1, explanation: "Exothermic: energy released from making bonds > energy consumed breaking bonds." },
+    { topic: "bond", difficulty: 3, text: "Using bond energies: H-H (436), Cl-Cl (242), H-Cl (431). Calculate ΔH for H₂ + Cl₂ → 2HCl.", options: ["-184 kJ", "+184 kJ", "-92 kJ", "+92 kJ"], correct: 0, explanation: "Bonds broken: 436+242=678 kJ; bonds formed: 2×431=862 kJ; ΔH = 678-862 = -184 kJ (exothermic)." },
+    
+    // Energy Diagram (diagram)
+    { topic: "diagram", difficulty: 1, text: "In an exothermic potential energy diagram, products are located:", options: ["Higher than reactants", "Lower than reactants", "Same level", "Above activation peak"], correct: 1, explanation: "Exothermic: products have lower enthalpy than reactants." },
+    { topic: "diagram", difficulty: 1, text: "Activation energy is:", options: ["Energy of products", "Energy barrier to start reaction", "ΔH of reaction", "Heat released"], correct: 1, explanation: "Activation energy = minimum energy required for reaction to occur." },
+    { topic: "diagram", difficulty: 2, text: "On an energy diagram, the difference between products and reactants represents:", options: ["Activation energy", "Enthalpy change (ΔH)", "Frequency factor", "Catalyst effect"], correct: 1, explanation: "Vertical gap = ΔH (products - reactants enthalpy)." },
+    { topic: "diagram", difficulty: 2, text: "Adding a catalyst affects which part of energy diagram?", options: ["Lowers activation energy", "Changes ΔH", "Raises product energy", "Shifts equilibrium"], correct: 0, explanation: "Catalyst provides alternative pathway with lower activation energy, ΔH unchanged." },
+    { topic: "diagram", difficulty: 3, text: "For an endothermic reaction, which statement about energy diagram is TRUE?", options: ["Reactants lower than products", "Products lower than reactants", "Activation energy is negative", "ΔH < 0"], correct: 0, explanation: "Endothermic: products have higher energy (ΔH > 0)." }
+];
+
+// Ensure we have at least 25 questions by extending if needed (we have exactly 25 in bank)
+// Actually questionBank length = 25 (5 topics × 5 each) Perfect!
+console.assert(questionBank.length === 25, "Question bank ready");
+
+// Adaptive state
+let currentSession = {
+    score: 0,
+    currentIndex: 0,       // number of questions answered so far (0-24)
+    maxQuestions: 25,
+    answeredFlag: false,
+    correctCount: 0,
+    currentQuestionObj: null,
+    usedIndices: new Set(),   // track which bank indices have been used
+    // weakTopics: higher value = weaker performance
+    weakTopics: {
+        exoEndo: 0,
+        deltaH: 0,
+        application: 0,
+        bond: 0,
+        diagram: 0
+    },
+    topicStats: {
+        exoEndo: { correct: 0, total: 0 },
+        deltaH: { correct: 0, total: 0 },
+        application: { correct: 0, total: 0 },
+        bond: { correct: 0, total: 0 },
+        diagram: { correct: 0, total: 0 }
+    },
+    difficultyLevel: 1,   // 1=beginner, 2=intermediate, 3=advanced
+    currentQuestionBank: [] // filtered questions based on difficulty and weakness
+};
+
+// helper: shuffle array
+function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+// choose most weak topic (higher weak value), tie break random
+function getWeakestTopic() {
+    let topics = Object.entries(currentSession.weakTopics);
+    let maxVal = -Infinity;
+    let weakest = "exoEndo";
+    for (let [topic, val] of topics) {
+        if (val > maxVal) {
+            maxVal = val;
+            weakest = topic;
+        } else if (val === maxVal && Math.random() > 0.6) {
+            weakest = topic;
+        }
+    }
+    return weakest;
+}
+
+// Get available questions from bank based on current difficulty & weak topic bias
+function selectNextQuestion() {
+    let remaining = questionBank.filter((q, idx) => !currentSession.usedIndices.has(idx));
+    if (remaining.length === 0) {
+        // fallback: clear used set if all used (should not happen exactly 25 questions)
+        currentSession.usedIndices.clear();
+        remaining = [...questionBank];
+    }
+    
+    let weakestTopic = getWeakestTopic();
+    // filter by difficulty range: prefer difficulty close to current session difficulty
+    let filtered = remaining.filter(q => Math.abs(q.difficulty - currentSession.difficultyLevel) <= 1);
+    if (filtered.length === 0) filtered = remaining;
+    
+    // prioritize weak topic (if any question with that topic exists in filtered)
+    let topicSpecific = filtered.filter(q => q.topic === weakestTopic);
+    let candidates = topicSpecific.length > 0 ? topicSpecific : filtered;
+    
+    // pick random among candidates
+    let chosen = candidates[Math.floor(Math.random() * candidates.length)];
+    let originalIndex = questionBank.findIndex(q => q === chosen);
+    currentSession.usedIndices.add(originalIndex);
+    return chosen;
+}
+
+// Adaptive difficulty adjustment based on recent accuracy
+function updateDifficulty() {
+    let answeredCount = currentSession.currentIndex;
+    if (answeredCount === 0) return;
+    let accuracy = currentSession.correctCount / answeredCount;
+    if (accuracy >= 0.75) currentSession.difficultyLevel = Math.min(3, currentSession.difficultyLevel + 0.2);
+    else if (accuracy <= 0.45) currentSession.difficultyLevel = Math.max(1, currentSession.difficultyLevel - 0.2);
+    currentSession.difficultyLevel = Math.min(3, Math.max(1, Math.round(currentSession.difficultyLevel * 10) / 10));
+    updateDifficultyBadge();
+}
+
+function updateDifficultyBadge() {
+    let badge = document.getElementById("difficultyTag");
+    if (!badge) return;
+    let level = currentSession.difficultyLevel;
+    if (level <= 1.4) badge.innerHTML = "📘 Difficulty: Beginner";
+    else if (level <= 2.4) badge.innerHTML = "⚡ Difficulty: Intermediate";
+    else badge.innerHTML = "🔥 Difficulty: Advanced";
+}
+
+function updateProgressBar() {
+    let percent = (currentSession.currentIndex / currentSession.maxQuestions) * 100;
+    document.getElementById("progress").style.width = percent + "%";
+}
+
+function renderQuestion() {
+    if (currentSession.currentIndex >= currentSession.maxQuestions) {
+        endGame();
+        return;
+    }
+    updateDifficulty();
+    let qData = selectNextQuestion();
+    currentSession.currentQuestionObj = qData;
+    
+    // Shuffle options to avoid positional memorization
+    let optionsWithIndex = qData.options.map((opt, idx) => ({ opt, idx }));
+    let shuffledOptions = shuffleArray([...optionsWithIndex]);
+    let newOptionsList = shuffledOptions.map(item => item.opt);
+    let newCorrectIndex = newOptionsList.findIndex(opt => opt === qData.options[qData.correct]);
+    
+    // store answer mapping
+    currentSession.currentQuestionObj.displayOptions = newOptionsList;
+    currentSession.currentQuestionObj.displayCorrect = newCorrectIndex;
+    
+    document.getElementById("question").innerText = qData.text;
+    let optsDiv = document.getElementById("options");
+    optsDiv.innerHTML = "";
+    newOptionsList.forEach((opt, idx) => {
+        let div = document.createElement("div");
+        div.className = "option";
+        div.innerText = opt;
+        div.setAttribute("data-opt-index", idx);
+        div.onclick = () => selectAnswer(idx);
+        optsDiv.appendChild(div);
+    });
+    document.getElementById("explanation").innerHTML = "";
+    document.getElementById("nextBtn").style.display = "none";
+    currentSession.answeredFlag = false;
+    updateProgressBar();
+}
+
+function selectAnswer(selectedIdx) {
+    if (currentSession.answeredFlag) return;
+    currentSession.answeredFlag = true;
+    let q = currentSession.currentQuestionObj;
+    let isCorrect = (selectedIdx === q.displayCorrect);
+    let optionsDivs = document.querySelectorAll(".option");
+    
+    // update topic stats
+    let topicKey = q.topic;
+    currentSession.topicStats[topicKey].total++;
+    
+    if (isCorrect) {
+        optionsDivs[selectedIdx].classList.add("correct");
+        currentSession.score += 10;
+        currentSession.correctCount++;
+        currentSession.topicStats[topicKey].correct++;
+        // reduce weakness for correct answer
+        currentSession.weakTopics[topicKey] = Math.max(0, (currentSession.weakTopics[topicKey] || 0) - 0.8);
+        // play correct sound simulation via web audio simple beep (optional) but we keep friendly
+        try {
+            let audio = new Audio("data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==");
+            audio.play().catch(e=>{});
+        } catch(e){}
+    } else {
+        optionsDivs[selectedIdx].classList.add("wrong");
+        optionsDivs[q.displayCorrect].classList.add("correct");
+        // increase weakness for this topic
+        currentSession.weakTopics[topicKey] = (currentSession.weakTopics[topicKey] || 0) + 1.2;
+        let explanationText = q.explanation || "No explanation provided.";
+        document.getElementById("explanation").innerHTML = `💡 Explanation: ${explanationText}`;
+        try {
+            let audio = new Audio("data:audio/wav;base64,U3RlYWx0aCBzb3VuZA==");
+            audio.play().catch(e=>{});
+        } catch(e){}
+    }
+    document.getElementById("score").innerHTML = `🏆 Score: ${currentSession.score}`;
+    document.getElementById("nextBtn").style.display = "inline-block";
+    
+    // disable further clicks on options
+    for (let optDiv of optionsDivs) {
+        optDiv.style.pointerEvents = "none";
+    }
+}
+
+function nextQuestion() {
+    if (!currentSession.answeredFlag) return;
+    currentSession.currentIndex++;
+    if (currentSession.currentIndex >= currentSession.maxQuestions) {
+        endGame();
+    } else {
+        renderQuestion();
+    }
+}
+
+function startGame() {
+    document.getElementById("startScreen").classList.remove("active");
+    document.getElementById("gameScreen").classList.add("active");
+    // reset state
+    currentSession = {
+        score: 0,
+        currentIndex: 0,
+        maxQuestions: 25,
+        answeredFlag: false,
+        correctCount: 0,
+        currentQuestionObj: null,
+        usedIndices: new Set(),
+        weakTopics: { exoEndo: 0, deltaH: 0, application: 0, bond: 0, diagram: 0 },
+        topicStats: { exoEndo: { correct: 0, total: 0 }, deltaH: { correct: 0, total: 0 }, application: { correct: 0, total: 0 }, bond: { correct: 0, total: 0 }, diagram: { correct: 0, total: 0 } },
+        difficultyLevel: 1,
+    };
+    document.getElementById("score").innerHTML = "🏆 Score: 0";
+    updateDifficultyBadge();
+    renderQuestion();
+}
+
+function endGame() {
+    document.getElementById("gameScreen").classList.remove("active");
+    document.getElementById("endScreen").classList.add("active");
+    document.getElementById("finalScore").innerHTML = `🏅 Final Score: ${currentSession.score} / ${currentSession.maxQuestions*10}`;
+    generateReport();
+}
+
+function generateReport() {
+    let accuracyTotal = Math.round((currentSession.correctCount / currentSession.maxQuestions) * 100);
+    let topicNames = {
+        exoEndo: "⚡ Exothermic vs Endothermic",
+        deltaH: "📉 Enthalpy (ΔH) Concepts",
+        application: "🧪 Real-world Applications",
+        bond: "🔗 Bond Energy & Breaking",
+        diagram: "📈 Energy Diagrams"
+    };
+    let html = `<div style="font-size:1.1rem;">✅ Overall Accuracy: <strong>${accuracyTotal}%</strong> (${currentSession.correctCount}/${currentSession.maxQuestions})</div><br>`;
+    for (let topic in currentSession.topicStats) {
+        let stat = currentSession.topicStats[topic];
+        if (stat.total === 0) continue;
+        let percent = Math.round((stat.correct / stat.total) * 100);
+        html += `<div style="margin:8px 0;">${topicNames[topic]}: ${percent}% (${stat.correct}/${stat.total})</div>`;
+    }
+    let mastery = accuracyTotal >= 85 ? "🏆 ADVANCED MASTERY" : (accuracyTotal >= 60 ? "📘 INTERMEDIATE" : "📖 BEGINNER");
+    html += `<hr><div style="font-weight:bold; margin-top:12px;">🎯 Mastery Level: ${mastery}</div>`;
+    html += `<div style="margin-top:12px;">🧠 AI adapted to your weak points — keep practicing to raise your score!</div>`;
+    document.getElementById("reportContent").innerHTML = html;
+}
+
+// Preload minimal
+window.onload = () => {
+    // ensure start screen active
+};
+</script>
+</body>
+</html>
