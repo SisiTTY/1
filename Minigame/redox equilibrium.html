@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>⚡ REDOX DEFENDER | Chemistry Learning Game</title>
+    <style>
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0b2b2b 0%, #1a4a3a 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, sans-serif;
+            padding: 20px;
+        }
+
+        /* Main game container */
+        .game-container {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 48px;
+            padding: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 28px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            cursor: pointer;
+            background: #1e3a3a;
+            width: 100%;
+            height: auto;
+        }
+
+        /* HUD Panel */
+        .hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 60px;
+            backdrop-filter: blur(10px);
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            font-weight: bold;
+        }
+
+        .stat-card {
+            background: #000000aa;
+            padding: 6px 18px;
+            border-radius: 40px;
+            color: #ffd966;
+            font-size: 1.2rem;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .beam-indicator {
+            background: #2c3e2e;
+            padding: 6px 18px;
+            border-radius: 40px;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        button {
+            background: #e67e22;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.1s, background 0.1s;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: #f39c12;
+            transform: scale(1.02);
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        /* Screens */
+        .screen {
+            display: none;
+            text-align: center;
+            background: rgba(10, 25, 20, 0.95);
+            backdrop-filter: blur(12px);
+            border-radius: 48px;
+            padding: 35px 30px;
+            max-width: 550px;
+            margin: auto;
+            color: #f5f0e0;
+        }
+
+        .active-screen {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ffb347, #ff7e05);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 15px;
+        }
+
+        .instruction-box {
+            background: #1e3a2ecc;
+            border-radius: 28px;
+            padding: 20px;
+            text-align: left;
+            margin: 20px 0;
+            border-left: 5px solid #ffb347;
+        }
+
+        .instruction-box h3 {
+            margin-top: 0;
+            color: #ffb347;
+        }
+
+        .beam-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .beam-choice {
+            background: #2c3e2e;
+            padding: 10px 18px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.1s;
+            border: 2px solid transparent;
+        }
+
+        .beam-choice.active {
+            border-color: #ffb347;
+            background: #3e5a3e;
+            transform: scale(1.02);
+            box-shadow: 0 0 12px #ffb347;
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .difficulty-btn {
+            background: #2c3e50;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .difficulty-btn.active {
+            background: #e67e22;
+            box-shadow: 0 0 8px orange;
+        }
+
+        .message-area {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            min-height: 45px;
+        }
+
+        .controls-hint {
+            background: #00000066;
+            border-radius: 28px;
+            padding: 8px 15px;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+
+        @media (max-width: 650px) {
+            .stat-card { font-size: 0.9rem; padding: 4px 12px; }
+            .beam-choice { padding: 6px 12px; font-size: 0.8rem; }
+            .game-title { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+<div id="startScreen" class="screen active-screen">
+    <div class="game-title">🧪 REDOX DEFENDER</div>
+    <div style="font-size: 1.2rem; margin-bottom: 10px;">Form 5 Chemistry | Oxidation & Reduction</div>
+    
+    <div class="instruction-box">
+        <h3>🎮 HOW TO PLAY (Easy & Fun!)</h3>
+        <p><strong>⭐ Your Goal:</strong> Protect the iron bar from rusting by matching the correct beam to each falling droplet!</p>
+        <p><strong>🔫 HOW TO SHOOT:</strong> Simply <strong>CLICK or TAP</strong> on any droplet. The game will use your selected beam.</p>
+        <p><strong>⚡ CHOOSE YOUR BEAM:</strong> Click the colored buttons below to switch beams before shooting.</p>
+        <p><strong>✅ CORRECT MATCH = +POINTS & COMBO</strong><br>
+        <strong>❌ WRONG MATCH = -POINTS & COMBO BREAK</strong><br>
+        <strong>💧 If droplet hits bottom = RUST DAMAGE (-15 points)</strong></p>
+        <hr>
+        <p><strong>📚 REDOX RULES (Quick Reference):</strong><br>
+        🔴 <strong>OXIDATION</strong> = loss of electrons → shoot with 🔴 OXIDATION beam<br>
+        🔵 <strong>REDUCTION</strong> = gain of electrons → shoot with 🔵 REDUCTION beam<br>
+        🟡 <strong>VOLTAIC CELL</strong> = spontaneous reaction → shoot with 🟡 VOLTAIC beam<br>
+        🟢 <strong>ELECTROLYTIC CELL</strong> = needs electricity → shoot with 🟢 ELECTROLYTIC beam<br>
+        🟤 <strong>RUSTING</strong> = iron oxidation → shoot with 🔴 OXIDATION beam<br>
+        🟣 <strong>METAL EXTRACTION</strong> = reduction of ore → shoot with 🔵 REDUCTION beam</p>
+    </div>
+    
+    <div class="difficulty-selector">
+        <div id="diffEasy" class="difficulty-btn active">🌟 EASY (Slower)</div>
+        <div id="diffMed" class="difficulty-btn">⚡ MEDIUM</div>
+        <div id="diffHard" class="difficulty-btn">🔥 HARD (Faster)</div>
+    </div>
+    
+    <button id="startGameBtn" style="background: #2ecc71; font-size: 1.3rem; padding: 12px 35px; margin-top: 10px;">🚀 START GAME</button>
+    
+    <div class="controls-hint" style="margin-top: 20px;">
+        💡 TIP: You can also press <strong>1,2,3,4</strong> on keyboard to switch beams!
+    </div>
+</div>
+
+<div id="gameScreen" style="display: none;">
+    <div class="game-container">
+        <div class="hud">
+            <div class="stats">
+                <div class="stat-card">🏆 SCORE: <span id="scoreValue">0</span></div>
+                <div class="stat-card">⚡ COMBO: <span id="comboValue">0</span>x</div>
+                <div class="stat-card">⏱️ TIME: <span id="timerValue">90</span>s</div>
+            </div>
+            <div class="beam-indicator" id="beamDisplay">🔴 OXIDATION BEAM</div>
+            <button id="backToMenuBtn" style="background:#4a5b66;">🏠 MENU</button>
+        </div>
+        
+        <canvas id="gameCanvas" width="850" height="500" style="width:100%; max-width:850px; aspect-ratio:850/500"></canvas>
+        
+        <div class="beam-buttons">
+            <div class="beam-choice" data-beam="oxi" style="background:#e34234;">🔴 OXIDATION</div>
+            <div class="beam-choice" data-beam="red" style="background:#3a6ea5;">🔵 REDUCTION</div>
+            <div class="beam-choice" data-beam="voltaic" style="background:#f4c542; color:#2c2c2c;">🟡 VOLTAIC</div>
+            <div class="beam-choice" data-beam="electro" style="background:#4caf7a;">🟢 ELECTROLYTIC</div>
+        </div>
+        
+        <div class="message-area" id="gameMessage">
+            💡 Click/Tap on droplets! Match the correct beam type!
+        </div>
+    </div>
+</div>
+
+<div id="endScreen" class="screen">
+    <div class="game-title">🏁 GAME OVER</div>
+    <div style="font-size: 3rem; margin: 15px; font-weight: bold;" id="finalScoreSpan">0</div>
+    <div id="endMessage" style="background: #1e3a2ecc; border-radius: 28px; padding: 18px; margin: 15px 0;"></div>
+    <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
+        <button id="restartBtn">🔄 PLAY AGAIN</button>
+        <button id="mainMenuBtn">🏠 MAIN MENU</button>
+    </div>
+</div>
+
+<script>
+    (function(){
+        // ---------- SIMPLE SOUND (using Web Audio) ----------
+        let audioEnabled = false;
+        let audioCtx = null;
+        
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            audioEnabled = true;
+        }
+        
+        function playTone(freq, duration, type = "sine", volume = 0.25) {
+            if (!audioEnabled && audioCtx) {
+                initAudio();
+            }
+            if (!audioCtx || audioCtx.state !== 'running') return;
+            try {
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.frequency.value = freq;
+                osc.type = type;
+                gain.gain.setValueAtTime(volume, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+                osc.start();
+                osc.stop(now + duration);
+            } catch(e) { console.log("audio error"); }
+        }
+        
+        function playCorrect() { playTone(880, 0.12, "sine", 0.2); playTone(1100, 0.1, "sine", 0.15); }
+        function playWrong() { playTone(320, 0.2, "sawtooth", 0.18); playTone(260, 0.2, "sawtooth", 0.18); }
+        function playHit() { playTone(550, 0.06, "square", 0.1); }
+        
+        // ---------- GAME VARIABLES ----------
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        let gameRunning = false;
+        let animationId = null;
+        let score = 0;
+        let combo = 0;
+        let timeLeft = 90;
+        let timerInterval = null;
+        let difficulty = "EASY";
+        
+        // Droplets array
+        let droplets = [];
+        let spawnCounter = 0;
+        
+        // Current beam selection
+        let currentBeam = "oxi"; // oxi, red, voltaic, electro
+        
+        // Aim position (for visual reticle)
+        let aimX = canvas.width/2, aimY = canvas.height/2;
+        
+        // ---------- DROPLET TYPES (Clear & Easy) ----------
+        const DROPLET_TYPES = [
+            { name: "OXIDATION", color: "#e34234", text: "🔴 OXIDATION", beamMatch: "oxi", points: 20, hint: "Loss of e⁻" },
+            { name: "REDUCTION", color: "#3a6ea5", text: "🔵 REDUCTION", beamMatch: "red", points: 20, hint: "Gain of e⁻" },
+            { name: "VOLTAIC CELL", color: "#f4c542", text: "🟡 VOLTAIC", beamMatch: "voltaic", points: 25, hint: "Spontaneous" },
+            { name: "ELECTROLYTIC", color: "#4caf7a", text: "🟢 ELECTROLYTIC", beamMatch: "electro", points: 25, hint: "Needs current" },
+            { name: "RUSTING", color: "#b87c4f", text: "🟤 RUSTING", beamMatch: "oxi", points: 30, hint: "Iron + O₂" },
+            { name: "METAL EXTRACTION", color: "#9575cd", text: "🟣 EXTRACTION", beamMatch: "red", points: 30, hint: "Ore → Metal" }
+        ];
+        
+        // Get beam display text
+        function getBeamDisplay() {
+            switch(currentBeam) {
+                case "oxi": return "🔴 OXIDATION BEAM";
+                case "red": return "🔵 REDUCTION BEAM";
+                case "voltaic": return "🟡 VOLTAIC BEAM";
+                case "electro": return "🟢 ELECTROLYTIC BEAM";
+                default: return "🔴 OXIDATION BEAM";
+            }
+        }
+        
+        // Update UI
+        function updateUI() {
+            document.getElementById("scoreValue").innerText = score;
+            document.getElementById("comboValue").innerText = combo;
+            document.getElementById("beamDisplay").innerHTML = getBeamDisplay();
+        }
+        
+        function showMessage(msg, isGood = true) {
+            const msgDiv = document.getElementById("gameMessage");
+            if(msgDiv) {
+                msgDiv.innerHTML = msg;
+                msgDiv.style.color = isGood ? "#a5ffa5" : "#ffaa88";
+                setTimeout(() => {
+                    if(msgDiv && gameRunning) msgDiv.innerHTML = "💡 Click on droplets with the correct beam!";
+                }, 1500);
+            }
+        }
+        
+        // Spawn a new droplet
+        function spawnDroplet() {
+            let typeIndex = Math.floor(Math.random() * DROPLET_TYPES.length);
+            let radius = 32;
+            let x = 45 + Math.random() * (canvas.width - 90);
+            let y = -radius;
+            
+            let speed = 1.2;
+            if (difficulty === "EASY") speed = 0.8 + Math.random() * 0.8;
+            else if (difficulty === "MEDIUM") speed = 1.2 + Math.random() * 0.8;
+            else speed = 1.8 + Math.random() * 1.2;
+            
+            droplets.push({
+                x, y, radius, 
+                typeIdx: typeIndex,
+                speed: speed,
+                beamMatch: DROPLET_TYPES[typeIndex].beamMatch
+            });
+        }
+        
+        // Update droplet positions
+        function updateDroplets() {
+            for (let i = 0; i < droplets.length; i++) {
+                droplets[i].y += droplets[i].speed;
+                // Check if hit bottom
+                if (droplets[i].y + droplets[i].radius > canvas.height) {
+                    droplets.splice(i, 1);
+                    i--;
+                    // Penalty: rust damage
+                    score = Math.max(0, score - 15);
+                    combo = 0;
+                    updateUI();
+                    showMessage("💧 Rust spreads! -15 points", false);
+                    playWrong();
+                }
+            }
+        }
+        
+        // Shoot at position
+        function shootAt(clickX, clickY) {
+            if (!gameRunning) return false;
+            
+            // Find droplet that was clicked (check distance)
+            for (let i = 0; i < droplets.length; i++) {
+                const d = droplets[i];
+                const dx = clickX - d.x;
+                const dy = clickY - d.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist <= d.radius + 8) {
+                    // Hit a droplet! Check if beam matches
+                    const required = d.beamMatch;
+                    const typeData = DROPLET_TYPES[d.typeIdx];
+                    
+                    if (currentBeam === required) {
+                        // CORRECT!
+                        let pointsGain = typeData.points;
+                        if (combo >= 3) pointsGain = Math.floor(pointsGain * 1.2);
+                        score += pointsGain;
+                        combo++;
+                        if (combo > 5) combo = 5;
+                        updateUI();
+                        playCorrect();
+                        showMessage(`✅ CORRECT! +${pointsGain} (${typeData.name}: ${typeData.hint})`, true);
+                        droplets.splice(i, 1);
+                        return true;
+                    } else {
+                        // WRONG BEAM
+                        score = Math.max(0, score - 10);
+                        combo = 0;
+                        updateUI();
+                        playWrong();
+                        let neededBeam = "";
+                        if (required === "oxi") neededBeam = "🔴 OXIDATION";
+                        else if (required === "red") neededBeam = "🔵 REDUCTION";
+                        else if (required === "voltaic") neededBeam = "🟡 VOLTAIC";
+                        else neededBeam = "🟢 ELECTROLYTIC";
+                        showMessage(`❌ Wrong! ${typeData.name} needs ${neededBeam} beam! -10 points`, false);
+                        droplets.splice(i, 1);
+                        return false;
+                    }
+                }
+            }
+            // Missed
+            playHit();
+            showMessage("💨 Missed! Try clicking directly on the droplet", false);
+            return false;
+        }
+        
+        // Timer
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (!gameRunning) return;
+                if (timeLeft <= 1) {
+                    clearInterval(timerInterval);
+                    gameOver();
+                } else {
+                    timeLeft--;
+                    document.getElementById("timerValue").innerText = timeLeft;
+                }
+            }, 1000);
+        }
+        
+        // DRAW EVERYTHING - CLEAR AND COLORFUL
+        function draw() {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Background gradient
+            const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            grad.addColorStop(0, "#2d5a5a");
+            grad.addColorStop(1, "#1a3a3a");
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw ground / iron bar
+            ctx.fillStyle = "#aa8c64";
+            ctx.fillRect(0, canvas.height - 32, canvas.width, 32);
+            ctx.fillStyle = "#8b5a2b";
+            ctx.fillRect(0, canvas.height - 28, canvas.width, 8);
+            ctx.fillStyle = "#f5e6c4";
+            ctx.font = "bold 14px 'Segoe UI'";
+            ctx.fillText("🔩 IRON BAR - PROTECT FROM RUST!", 20, canvas.height - 10);
+            
+            // Draw droplets
+            for (let d of droplets) {
+                const type = DROPLET_TYPES[d.typeIdx];
+                
+                // Shadow for depth
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = "rgba(0,0,0,0.3)";
+                
+                ctx.beginPath();
+                ctx.arc(d.x, d.y, d.radius - 2, 0, Math.PI * 2);
+                ctx.fillStyle = type.color;
+                ctx.fill();
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+                
+                // Text inside droplet
+                ctx.fillStyle = "white";
+                ctx.font = "bold 13px 'Segoe UI'";
+                ctx.shadowBlur = 2;
+                ctx.fillText(type.text, d.x - 28, d.y - 5);
+                ctx.font = "10px monospace";
+                ctx.fillStyle = "#ffffcc";
+                ctx.fillText(type.hint, d.x - 24, d.y + 12);
+                
+                ctx.shadowBlur = 0;
+            }
+            
+            // Draw aiming reticle (simple crosshair)
+            ctx.beginPath();
+            ctx.arc(aimX, aimY, 18, 0, Math.PI * 2);
+            ctx.strokeStyle = "#ffdd99";
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+            ctx.moveTo(aimX - 28, aimY);
+            ctx.lineTo(aimX - 12, aimY);
+            ctx.moveTo(aimX + 12, aimY);
+            ctx.lineTo(aimX + 28, aimY);
+            ctx.moveTo(aimX, aimY - 28);
+            ctx.lineTo(aimX, aimY - 12);
+            ctx.moveTo(aimX, aimY + 12);
+            ctx.lineTo(aimX, aimY + 28);
+            ctx.stroke();
+            
+            // Draw current beam effect on cursor
+            ctx.beginPath();
+            ctx.arc(aimX, aimY, 8, 0, Math.PI * 2);
+            ctx.fillStyle = "#ffdd88aa";
+            ctx.fill();
+            
+            // Top info on canvas
+            ctx.font = "bold 16px monospace";
+            ctx.fillStyle = "#ffdd99";
+            ctx.fillText("⚡ ACTIVE BEAM: " + getBeamDisplay(), 15, 35);
+        }
+        
+        // Game loop
+        let frameCounter = 0;
+        function gameLoop() {
+            if (!gameRunning) return;
+            
+            // Spawn control based on difficulty
+            let spawnDelay = 40;
+            if (difficulty === "EASY") spawnDelay = 48;
+            else if (difficulty === "MEDIUM") spawnDelay = 35;
+            else spawnDelay = 26;
+            
+            if (spawnCounter <= 0) {
+                spawnDroplet();
+                spawnCounter = spawnDelay;
+            } else {
+                spawnCounter--;
+            }
+            
+            updateDroplets();
+            draw();
+            
+            animationId = requestAnimationFrame(gameLoop);
+        }
+        
+        function gameOver() {
+            gameRunning = false;
+            if (timerInterval) clearInterval(timerInterval);
+            if (animationId) cancelAnimationFrame(animationId);
+            
+            playTone(200, 0.4, "sawtooth", 0.25);
+            
+            document.getElementById("gameScreen").style.display = "none";
+            document.getElementById("endScreen").classList.add("active-screen");
+            document.getElementById("endScreen").style.display = "block";
+            document.getElementById("finalScoreSpan").innerText = score;
+            
+            let message = "";
+            if (score >= 600) message = "🏆 AMAZING! Redox Master! You really understand oxidation & reduction! 🏆";
+            else if (score >= 350) message = "🎉 Great job! You're getting the hang of redox reactions! 🎉";
+            else if (score >= 150) message = "👍 Good effort! Keep practicing the beam matching rules!";
+            else message = "📚 Keep learning! Remember: Oxidation = loss e⁻, Reduction = gain e⁻. Try again!";
+            
+            document.getElementById("endMessage").innerHTML = `✨ Final Score: ${score} points ✨<br>Difficulty: ${difficulty}<br><br>${message}<br><br>💡 TIP: Match the beam color to the droplet type!`;
+        }
+        
+        function startGameSession(selectedDiff) {
+            difficulty = selectedDiff;
+            score = 0;
+            combo = 0;
+            timeLeft = (difficulty === "EASY") ? 95 : (difficulty === "MEDIUM") ? 80 : 65;
+            droplets = [];
+            spawnCounter = 0;
+            currentBeam = "oxi";
+            gameRunning = true;
+            
+            updateUI();
+            document.getElementById("timerValue").innerText = timeLeft;
+            
+            // Hide start/end, show game
+            document.getElementById("startScreen").classList.remove("active-screen");
+            document.getElementById("startScreen").style.display = "none";
+            document.getElementById("endScreen").style.display = "none";
+            document.getElementById("gameScreen").style.display = "block";
+            
+            if (timerInterval) clearInterval(timerInterval);
+            startTimer();
+            if (animationId) cancelAnimationFrame(animationId);
+            animationId = requestAnimationFrame(gameLoop);
+            
+            showMessage("🎮 GAME STARTED! Click on droplets with the correct beam!", true);
+        }
+        
+        function resetToMenu() {
+            gameRunning = false;
+            if (timerInterval) clearInterval(timerInterval);
+            if (animationId) cancelAnimationFrame(animationId);
+            document.getElementById("gameScreen").style.display = "none";
+            document.getElementById("endScreen").style.display = "none";
+            document.getElementById("startScreen").style.display = "block";
+            document.getElementById("startScreen").classList.add("active-screen");
+        }
+        
+        // ---------- EVENT HANDLERS ----------
+        function updateAim(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+                e.preventDefault();
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            
+            let canvasX = (clientX - rect.left) * scaleX;
+            let canvasY = (clientY - rect.top) * scaleY;
+            canvasX = Math.min(canvas.width - 10, Math.max(10, canvasX));
+            canvasY = Math.min(canvas.height - 20, Math.max(20, canvasY));
+            aimX = canvasX;
+            aimY = canvasY;
+        }
+        
+        function handleShoot(e) {
+            e.preventDefault();
+            if (!gameRunning) return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
+            let clickX, clickY;
+            if (e.touches) {
+                clickX = (e.touches[0].clientX - rect.left) * scaleX;
+                clickY = (e.touches[0].clientY - rect.top) * scaleY;
+            } else {
+                clickX = (e.clientX - rect.left) * scaleX;
+                clickY = (e.clientY - rect.top) * scaleY;
+            }
+            
+            clickX = Math.min(canvas.width, Math.max(0, clickX));
+            clickY = Math.min(canvas.height, Math.max(0, clickY));
+            shootAt(clickX, clickY);
+        }
+        
+        // Change beam
+        function setBeam(beamType) {
+            currentBeam = beamType;
+            updateUI();
+            showMessage(`🔁 Switched to ${getBeamDisplay()}`, true);
+            playHit();
+            
+            // Update active button styling
+            document.querySelectorAll('.beam-choice').forEach(btn => {
+                if (btn.getAttribute('data-beam') === beamType) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+        
+        // Keyboard shortcuts
+        function handleKey(e) {
+            const key = e.key;
+            if (key === '1' || key === 'o') setBeam("oxi");
+            else if (key === '2' || key === 'r') setBeam("red");
+            else if (key === '3' || key === 'v') setBeam("voltaic");
+            else if (key === '4' || key === 'e') setBeam("electro");
+        }
+        
+        // Initialize event listeners
+        function init() {
+            canvas.addEventListener("mousemove", updateAim);
+            canvas.addEventListener("click", handleShoot);
+            canvas.addEventListener("touchmove", updateAim, { passive: false });
+            canvas.addEventListener("touchstart", handleShoot, { passive: false });
+            window.addEventListener("keydown", handleKey);
+            
+            // Beam buttons
+            document.querySelectorAll('.beam-choice').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setBeam(btn.getAttribute('data-beam'));
+                });
+            });
+            
+            // Difficulty selection
+            document.getElementById("diffEasy").onclick = () => {
+                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById("diffEasy").classList.add('active');
+                difficulty = "EASY";
+            };
+            document.getElementById("diffMed").onclick = () => {
+                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById("diffMed").classList.add('active');
+                difficulty = "MEDIUM";
+            };
+            document.getElementById("diffHard").onclick = () => {
+                document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById("diffHard").classList.add('active');
+                difficulty = "HARD";
+            };
+            
+            document.getElementById("startGameBtn").onclick = () => {
+                initAudio();
+                startGameSession(difficulty);
+            };
+            document.getElementById("restartBtn").onclick = () => {
+                initAudio();
+                resetToMenu();
+                startGameSession(difficulty);
+            };
+            document.getElementById("mainMenuBtn").onclick = () => resetToMenu();
+            document.getElementById("backToMenuBtn").onclick = () => resetToMenu();
+            
+            // Set default active beam button
+            document.querySelector('.beam-choice[data-beam="oxi"]').classList.add('active');
+        }
+        
+        init();
+    })();
+</script>
+</body>
+</html>
