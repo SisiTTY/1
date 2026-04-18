@@ -1,0 +1,648 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Periodic Table Challenge - 30 Questions | 30s Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(145deg, #0b2b2f 0%, #05161e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-wrapper {
+            max-width: 850px;
+            width: 100%;
+            background: rgba(255, 248, 235, 0.98);
+            border-radius: 56px;
+            box-shadow: 0 30px 45px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .start-screen, .game-screen, .end-screen {
+            padding: 30px 28px;
+        }
+
+        .start-screen {
+            background: linear-gradient(135deg, #fff7eb, #ffefdb);
+            text-align: center;
+        }
+
+        .game-screen {
+            background: #fef7e8;
+            display: none;
+        }
+
+        .end-screen {
+            background: #eaf4f0;
+            text-align: center;
+            display: none;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            background: linear-gradient(135deg, #1a4a5f, #0f2c38);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .sub {
+            color: #c2571a;
+            font-weight: 700;
+            border-bottom: 3px solid #ffb347;
+            display: inline-block;
+            padding-bottom: 5px;
+            margin-bottom: 20px;
+        }
+
+        .instructions {
+            background: #e5f0f5;
+            padding: 18px;
+            border-radius: 32px;
+            margin: 20px 0;
+            text-align: left;
+            font-size: 0.9rem;
+            color: #1f3b4c;
+            border-left: 8px solid #ff9800;
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .difficulty-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 60px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #d4e0e8;
+            font-size: 1rem;
+        }
+
+        .difficulty-btn.active {
+            background: #ff9800;
+            color: white;
+            box-shadow: 0 5px 12px rgba(255, 152, 0, 0.4);
+            transform: scale(1.02);
+        }
+
+        .btn-primary {
+            background: #1f6e43;
+            border: none;
+            color: white;
+            font-weight: bold;
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 80%;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-primary:hover {
+            background: #0e4a2e;
+            transform: scale(0.97);
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            background: #1e3a47;
+            padding: 15px 20px;
+            border-radius: 50px;
+            margin-bottom: 25px;
+            color: white;
+            font-weight: bold;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .points-box, .timer-box, .difficulty-badge, .q-counter {
+            background: #00000055;
+            backdrop-filter: blur(4px);
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 1rem;
+        }
+
+        .timer-box {
+            background: #0e2a2f;
+            font-family: monospace;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .question-area {
+            background: white;
+            border-radius: 48px;
+            padding: 24px;
+            margin: 20px 0;
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.1);
+            border: 1px solid #ffe0b5;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #1e3c4c;
+            margin-bottom: 25px;
+            line-height: 1.3;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option {
+            background: #f8fafd;
+            border-radius: 100px;
+            padding: 12px 20px;
+            border: 1px solid #ccd7e4;
+            cursor: pointer;
+            transition: 0.15s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option:hover {
+            background: #ffecce;
+            transform: translateX(6px);
+            border-color: #ffb347;
+        }
+
+        .disabled-option {
+            pointer-events: none;
+            opacity: 0.6;
+        }
+
+        .explanation-box {
+            background: #f0e7d8;
+            border-radius: 28px;
+            padding: 16px;
+            margin: 20px 0;
+            font-size: 0.9rem;
+            border-left: 12px solid #ff9800;
+            color: #2c3e2f;
+        }
+
+        .next-btn {
+            background: #4c9f70;
+            width: 100%;
+            border: none;
+            padding: 14px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .next-btn:disabled {
+            background: #b0bec5;
+            cursor: not-allowed;
+        }
+
+        .restart-btn {
+            background: #ff8c42;
+            margin-top: 20px;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 20px;
+            color: #6f8f9c;
+        }
+
+        @media (max-width: 550px) {
+            .game-wrapper {
+                border-radius: 32px;
+            }
+            .question-text {
+                font-size: 1.1rem;
+            }
+            .game-header {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="game-wrapper" id="gameApp">
+    <!-- START PAGE -->
+    <div id="startScreen" class="start-screen">
+        <h1>⚛️ PERIODIC TABLE MASTER</h1>
+        <div class="sub">30 Questions • 30 Second Timer • Adaptive AI</div>
+        <div class="instructions">
+            📘 <strong>How to Play</strong><br>
+            • Answer 30 unique MCQs about the Periodic Table (development, arrangement, Group 18,1,17, Period 3 & Transition elements)<br>
+            • <strong>Adaptive AI</strong> detects your weakest topics & gives more questions from that area!<br>
+            • ⏱️ <strong>Fixed 30 seconds per question</strong> – answer before time runs out!<br>
+            • Points based on difficulty: Easy +10, Medium +20, Hard +30<br>
+            • Wrong answer? Detailed explanation appears instantly. No repeat questions!<br>
+            • 🔔 Sound feedback included (correct / wrong).
+        </div>
+        <div class="difficulty-selector">
+            <button data-diff="easy" class="difficulty-btn active">🍃 EASY (+10)</button>
+            <button data-diff="medium" class="difficulty-btn">⚡ MEDIUM (+20)</button>
+            <button data-diff="hard" class="difficulty-btn">🔥 HARD (+30)</button>
+        </div>
+        <button id="startGameBtn" class="btn-primary">🧪 START 30-QUESTION QUIZ 🧪</button>
+        <footer>🎧 Sound enabled | AI adapts to your weak categories</footer>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="gameScreen" class="game-screen">
+        <div class="game-header">
+            <div class="points-box">🏆 POINTS: <span id="pointsValue">0</span></div>
+            <div class="difficulty-badge" id="difficultyLabel">EASY</div>
+            <div class="timer-box">⏱️ <span id="timerSeconds">30</span> s</div>
+            <div class="q-counter">📋 <span id="qNum">0</span>/<span id="totalQ">30</span></div>
+        </div>
+        <div class="question-area">
+            <div class="question-text" id="questionText">Loading...</div>
+            <div class="options-grid" id="optionsContainer"></div>
+            <div id="explanationArea" class="explanation-box" style="display: none;"></div>
+            <button id="nextButton" class="next-btn" disabled>➡ NEXT QUESTION</button>
+        </div>
+        <button id="restartFromGame" class="restart-btn">🔄 End Game & Restart</button>
+    </div>
+
+    <!-- END GAME SCREEN -->
+    <div id="endScreen" class="end-screen">
+        <h2>🏁 GAME COMPLETED 🏁</h2>
+        <div style="font-size: 2.5rem; margin: 20px; font-weight: bold;" id="finalScoreSpan">0</div>
+        <p>✨ You've mastered 30 questions on the Periodic Table! ✨</p>
+        <p id="feedbackMessage" style="margin: 15px; font-weight: 500;"></p>
+        <button id="restartEndBtn" class="btn-primary" style="background:#ff8c42;">🔁 PLAY AGAIN</button>
+    </div>
+</div>
+
+<script>
+    // ----------------------------- 30 UNIQUE QUESTIONS (Form 4 Chemistry) ---------------------------------
+    const QUESTION_SET = [
+        { id: 1, text: "Who proposed the 'Law of Octaves' based on the arrangement of elements in groups of eight?", options: ["Dobereiner", "Newlands", "Mendeleev", "Moseley"], correct: 1, category: "Development", explanation: "John Newlands (1864) arranged 56 elements and noticed every eighth element had similar properties, calling it Law of Octaves." },
+        { id: 2, text: "Mendeleev's periodic table was arranged in order of increasing:", options: ["Atomic number", "Atomic mass", "Atomic radius", "Electronegativity"], correct: 1, category: "Development", explanation: "Mendeleev arranged by increasing atomic mass; later Moseley corrected using atomic number." },
+        { id: 3, text: "The modern periodic law states that properties of elements are periodic function of their:", options: ["Atomic mass", "Atomic number", "Neutron count", "Mass number"], correct: 1, category: "Arrangement", explanation: "Henry Moseley discovered atomic number is fundamental; modern table arranged by atomic number." },
+        { id: 4, text: "Which group is known as noble gases and has full valence shell (octet)?", options: ["Group 1", "Group 17", "Group 18", "Group 2"], correct: 2, category: "Group18", explanation: "Group 18 (He, Ne, Ar, Kr, Xe, Rn) have stable electron configuration, very unreactive." },
+        { id: 5, text: "Which element in Group 1 is the most reactive with water?", options: ["Lithium", "Sodium", "Potassium", "Francium"], correct: 3, category: "Group1", explanation: "Reactivity increases down group: Francium is most reactive (though extremely rare)." },
+        { id: 6, text: "Halogens (Group 17) exist as diatomic molecules. The trend of reactivity down the group:", options: ["Increases", "Decreases", "Remains same", "First increases then decreases"], correct: 1, category: "Group17", explanation: "Reactivity decreases down group: Fluorine is most reactive, iodine least." },
+        { id: 7, text: "Which period 3 element has the highest melting point (giant covalent structure)?", options: ["Silicon", "Sulfur", "Phosphorus", "Sodium"], correct: 0, category: "Period3", explanation: "Silicon has giant covalent lattice, high melting point; others are molecular or metallic." },
+        { id: 8, text: "Which property is typical of transition elements?", options: ["Form colorless compounds", "Low melting points", "Variable oxidation states", "Do not form complexes"], correct: 2, category: "TransitionElements", explanation: "Transition metals show multiple oxidation states due to partially filled d orbitals." },
+        { id: 9, text: "Who arranged the periodic table based on atomic number and established modern layout?", options: ["Mendeleev", "Moseley", "Dobereiner", "Ramsay"], correct: 1, category: "Development", explanation: "Moseley in 1913 used X-ray spectra to determine atomic number, fixing inconsistencies." },
+        { id: 10, text: "How many periods are there in the modern periodic table?", options: ["7", "8", "9", "6"], correct: 0, category: "Arrangement", explanation: "There are 7 horizontal periods." },
+        { id: 11, text: "Noble gases are unreactive because:", options: ["High electronegativity", "Full valence electron shell", "Large atomic radius", "High ionization energy only"], correct: 1, category: "Group18", explanation: "Full outer shell (octet) gives stability; they rarely form compounds." },
+        { id: 12, text: "Which alkali metal is stored under oil to prevent reaction with air?", options: ["All group 1", "Sodium only", "Potassium only", "Lithium"], correct: 0, category: "Group1", explanation: "All group 1 metals are highly reactive and stored under oil to prevent oxidation/moisture." },
+        { id: 13, text: "What is the color of chlorine gas at room temperature?", options: ["Greenish-yellow", "Reddish-brown", "Purple vapor", "Colorless"], correct: 0, category: "Group17", explanation: "Chlorine is greenish-yellow gas; bromine liquid red-brown, iodine purple solid." },
+        { id: 14, text: "Which period 3 element forms an acidic oxide (SO₂) that causes acid rain?", options: ["Magnesium", "Aluminium", "Sulfur", "Chlorine"], correct: 2, category: "Period3", explanation: "Sulfur forms SO₂ and SO₃ which dissolve in rain to produce acid rain." },
+        { id: 15, text: "Transition elements often act as good catalysts. Example:", options: ["Iron in Haber process", "Sodium in batteries", "Magnesium in fireworks", "Helium in balloons"], correct: 0, category: "TransitionElements", explanation: "Iron (Fe) catalyst for ammonia synthesis; transition metals provide variable oxidation states for catalysis." },
+        { id: 16, text: "The group number for elements with valence electron configuration ns²np⁵ is:", options: ["1", "2", "17", "18"], correct: 2, category: "Arrangement", explanation: "ns²np⁵ = Group 17 (halogens) because 7 valence electrons." },
+        { id: 17, text: "Which noble gas is used in 'neon signs' to produce reddish-orange glow?", options: ["Helium", "Neon", "Argon", "Krypton"], correct: 1, category: "Group18", explanation: "Neon emits characteristic red glow when electrified; other gases give different colors." },
+        { id: 18, text: "Reaction of sodium with water produces:", options: ["NaOH + H₂", "Na₂O + H₂O", "NaH + O₂", "Na₂O₂ + H₂"], correct: 0, category: "Group1", explanation: "2Na + 2H₂O → 2NaOH + H₂(g); vigorous reaction." },
+        { id: 19, text: "Which halogen is a liquid at room temperature?", options: ["Fluorine", "Chlorine", "Bromine", "Iodine"], correct: 2, category: "Group17", explanation: "Bromine (Br₂) is the only liquid nonmetal at room temperature." },
+        { id: 20, text: "Across period 3 from Na to Cl, the atomic radius generally:", options: ["Increases", "Decreases", "Stays same", "Increases then decreases"], correct: 1, category: "Period3", explanation: "Nuclear charge increases, pulling electrons closer → atomic radius decreases across period." },
+        { id: 21, text: "Which transition metal is known for its use in stainless steel due to corrosion resistance?", options: ["Copper", "Zinc", "Chromium", "Manganese"], correct: 2, category: "TransitionElements", explanation: "Chromium forms passive oxide layer; key component of stainless steel." },
+        { id: 22, text: "Dobereiner's triads grouped elements with similar properties in groups of three. Example:", options: ["Li, Na, K", "Cl, Br, I", "Both A and B", "He, Ne, Ar"], correct: 2, category: "Development", explanation: "Li-Na-K and Cl-Br-I both were triads with intermediate atomic mass." },
+        { id: 23, text: "In periodic table, vertical columns are called:", options: ["Periods", "Groups", "Blocks", "Series"], correct: 1, category: "Arrangement", explanation: "Groups (18) have same valence electrons configuration, similar properties." },
+        { id: 24, text: "Why are transition elements hard and have high melting points?", options: ["Delocalized d electrons contribute to metallic bonding", "Large atomic radii", "Low density", "Ionic bonding"], correct: 0, category: "TransitionElements", explanation: "Strong metallic bonding involving d electrons leads to high hardness and melting points." },
+        { id: 25, text: "Which group 1 element reacts least vigorously with water?", options: ["Li", "Na", "K", "Rb"], correct: 0, category: "Group1", explanation: "Lithium reactivity is lowest among group 1 due to higher ionization energy." },
+        { id: 26, text: "The most electronegative element in period 3 is:", options: ["Sodium", "Phosphorus", "Sulfur", "Chlorine"], correct: 3, category: "Period3", explanation: "Chlorine has highest electronegativity across period 3 (3.16)." },
+        { id: 27, text: "Which scientist is known as father of modern periodic table?", options: ["Moseley", "Mendeleev", "Newlands", "Lavoisier"], correct: 1, category: "Development", explanation: "Mendeleev's table predicted undiscovered elements, though Moseley improved it." },
+        { id: 28, text: "Group 18 elements have ________ ionization energy within the period.", options: ["Highest", "Lowest", "Intermediate", "Zero"], correct: 0, category: "Group18", explanation: "Stable octet → high ionization energy; they don't lose electrons easily." },
+        { id: 29, text: "Which transition metal is widely used as a catalyst in catalytic converters to reduce car exhaust emissions?", options: ["Platinum", "Iron", "Copper", "Zinc"], correct: 0, category: "TransitionElements", explanation: "Platinum (along with Pd, Rh) acts as catalyst converting harmful gases to CO₂, N₂, and H₂O." },
+        { id: 30, text: "The oxide of period 3 element that is amphoteric (reacts with both acids and bases) is:", options: ["Na₂O", "MgO", "Al₂O₃", "SiO₂"], correct: 2, category: "Period3", explanation: "Aluminium oxide (Al₂O₃) is amphoteric; it dissolves in both strong acids and alkalis." }
+    ];
+
+    // global game state
+    let gameActive = false;
+    let currentQuestionObj = null;
+    let currentPoints = 0;
+    let currentDifficulty = "easy";   // easy, medium, hard
+    const TIME_PER_QUESTION = 30;      // FIXED 30 SECOND TIMER
+    let timerInterval = null;
+    let timeLeft = 30;
+    let answered = false;
+    let askedIds = new Set();
+    let originalQuestions = [...QUESTION_SET];
+    let availableQuestions = [...QUESTION_SET];
+    
+    // category performance tracking (for AI adaptation)
+    let categoryStats = {
+        "Development": { correct: 0, total: 0 },
+        "Arrangement": { correct: 0, total: 0 },
+        "Group18": { correct: 0, total: 0 },
+        "Group1": { correct: 0, total: 0 },
+        "Group17": { correct: 0, total: 0 },
+        "Period3": { correct: 0, total: 0 },
+        "TransitionElements": { correct: 0, total: 0 }
+    };
+    
+    // DOM elements
+    const startScreenDiv = document.getElementById('startScreen');
+    const gameScreenDiv = document.getElementById('gameScreen');
+    const endScreenDiv = document.getElementById('endScreen');
+    const pointsSpan = document.getElementById('pointsValue');
+    const timerSpan = document.getElementById('timerSeconds');
+    const difficultyLabel = document.getElementById('difficultyLabel');
+    const questionTextDiv = document.getElementById('questionText');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const explanationArea = document.getElementById('explanationArea');
+    const nextBtn = document.getElementById('nextButton');
+    const qNumSpan = document.getElementById('qNum');
+    const totalQSpan = document.getElementById('totalQ');
+    const restartGameBtn = document.getElementById('restartFromGame');
+    const restartEndBtn = document.getElementById('restartEndBtn');
+    const finalScoreSpan = document.getElementById('finalScoreSpan');
+    const feedbackMsg = document.getElementById('feedbackMessage');
+    
+    // Audio context for sound feedback
+    let audioCtx = null;
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+    function playSound(type) {
+        try {
+            initAudio();
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            gain.gain.setValueAtTime(0.2, now);
+            if (type === 'correct') {
+                osc.frequency.value = 880;
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+                osc.start();
+                osc.stop(now + 0.4);
+            } else {
+                osc.frequency.value = 220;
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
+                osc.start();
+                osc.stop(now + 0.5);
+            }
+        } catch(e) { console.warn("audio blocked"); }
+    }
+    
+    // ADAPTIVE AI: pick next question based on weakest category (lowest correct ratio) among unasked questions
+    function getWeakestCategoryWithRemaining() {
+        let remainingByCat = {};
+        for (let cat of Object.keys(categoryStats)) {
+            remainingByCat[cat] = availableQuestions.filter(q => q.category === cat && !askedIds.has(q.id)).length;
+        }
+        let validCats = Object.keys(remainingByCat).filter(cat => remainingByCat[cat] > 0);
+        if (validCats.length === 0) return null;
+        let ratios = {};
+        for (let cat of validCats) {
+            let stat = categoryStats[cat];
+            let ratio = (stat.total === 0) ? 0.5 : (stat.correct / stat.total);
+            ratios[cat] = ratio;
+        }
+        let minRatio = Math.min(...Object.values(ratios));
+        let weakestCats = validCats.filter(cat => ratios[cat] === minRatio);
+        let chosenCat = weakestCats[Math.floor(Math.random() * weakestCats.length)];
+        return chosenCat;
+    }
+    
+    function getNextQuestion() {
+        if (askedIds.size >= originalQuestions.length) return null;
+        let targetCat = getWeakestCategoryWithRemaining();
+        if (!targetCat) return null;
+        let pool = availableQuestions.filter(q => q.category === targetCat && !askedIds.has(q.id));
+        if (pool.length === 0) {
+            let anyLeft = availableQuestions.filter(q => !askedIds.has(q.id));
+            if (anyLeft.length === 0) return null;
+            return anyLeft[Math.floor(Math.random() * anyLeft.length)];
+        }
+        return pool[Math.floor(Math.random() * pool.length)];
+    }
+    
+    function updateUIForQuestion(question) {
+        questionTextDiv.innerText = question.text;
+        optionsContainer.innerHTML = '';
+        question.options.forEach((opt, idx) => {
+            const optDiv = document.createElement('div');
+            optDiv.classList.add('option');
+            optDiv.innerHTML = `<span style="font-weight:bold;">${String.fromCharCode(65+idx)}.</span> ${opt}`;
+            optDiv.dataset.optIndex = idx;
+            optDiv.addEventListener('click', () => handleAnswer(idx, question));
+            optionsContainer.appendChild(optDiv);
+        });
+        explanationArea.style.display = 'none';
+        explanationArea.innerHTML = '';
+        answered = false;
+        nextBtn.disabled = true;
+        if (timerInterval) clearInterval(timerInterval);
+        startTimer();
+    }
+    
+    function startTimer() {
+        timeLeft = TIME_PER_QUESTION;
+        timerSpan.innerText = timeLeft;
+        timerInterval = setInterval(() => {
+            if (!gameActive) return;
+            if (answered) return;
+            if (timeLeft <= 1) {
+                clearInterval(timerInterval);
+                if (!answered) {
+                    handleTimeout();
+                }
+            } else {
+                timeLeft--;
+                timerSpan.innerText = timeLeft;
+            }
+        }, 1000);
+    }
+    
+    function handleTimeout() {
+        if (answered) return;
+        answered = true;
+        clearInterval(timerInterval);
+        if (currentQuestionObj) {
+            let cat = currentQuestionObj.category;
+            categoryStats[cat].total++;
+            playSound('wrong');
+            showExplanation(currentQuestionObj, false, null);
+            disableOptions(true);
+            nextBtn.disabled = false;
+        }
+    }
+    
+    function handleAnswer(selectedIdx, question) {
+        if (answered || !gameActive) return;
+        answered = true;
+        clearInterval(timerInterval);
+        const isCorrect = (selectedIdx === question.correct);
+        let cat = question.category;
+        categoryStats[cat].total++;
+        if (isCorrect) {
+            let pointGain = (currentDifficulty === 'easy') ? 10 : (currentDifficulty === 'medium' ? 20 : 30);
+            currentPoints += pointGain;
+            pointsSpan.innerText = currentPoints;
+            categoryStats[cat].correct++;
+            playSound('correct');
+        } else {
+            playSound('wrong');
+        }
+        showExplanation(question, isCorrect, selectedIdx);
+        disableOptions(true);
+        nextBtn.disabled = false;
+    }
+    
+    function showExplanation(question, isCorrect, selectedIdx) {
+        let correctLetter = String.fromCharCode(65 + question.correct);
+        let correctAnswerText = question.options[question.correct];
+        let userChoiceText = (selectedIdx !== undefined && !isCorrect) ? `You chose: ${question.options[selectedIdx]}. ` : '';
+        let explanationMsg = isCorrect ? "✅ Correct! " : `❌ Wrong. ${userChoiceText}Correct answer: ${correctLetter}. ${correctAnswerText}. `;
+        explanationMsg += question.explanation;
+        explanationArea.innerHTML = `<strong>📖 Explanation:</strong> ${explanationMsg}`;
+        explanationArea.style.display = 'block';
+    }
+    
+    function disableOptions(disabled) {
+        const opts = document.querySelectorAll('.option');
+        opts.forEach(opt => {
+            if (disabled) opt.classList.add('disabled-option');
+            else opt.classList.remove('disabled-option');
+        });
+    }
+    
+    async function loadNextQuestion() {
+        if (!gameActive) return;
+        let nextQ = getNextQuestion();
+        if (!nextQ) {
+            endGame();
+            return;
+        }
+        currentQuestionObj = nextQ;
+        askedIds.add(nextQ.id);
+        let currentAskedCount = askedIds.size;
+        qNumSpan.innerText = currentAskedCount;
+        totalQSpan.innerText = originalQuestions.length;
+        updateUIForQuestion(nextQ);
+    }
+    
+    function endGame() {
+        gameActive = false;
+        if (timerInterval) clearInterval(timerInterval);
+        gameScreenDiv.style.display = 'none';
+        endScreenDiv.style.display = 'block';
+        finalScoreSpan.innerText = currentPoints;
+        let totalAnswered = Object.values(categoryStats).reduce((sum, stat) => sum + stat.total, 0);
+        if (totalAnswered > 0) {
+            feedbackMsg.innerText = `🏅 You completed 30 questions! Score: ${currentPoints} points. AI analyzed your weak topics and adapted questions dynamically. Restart to master more!`;
+        } else {
+            feedbackMsg.innerText = "Game finished. Master the periodic table!";
+        }
+    }
+    
+    function resetGame() {
+        if (timerInterval) clearInterval(timerInterval);
+        gameActive = false;
+        askedIds.clear();
+        currentPoints = 0;
+        pointsSpan.innerText = "0";
+        categoryStats = {
+            "Development": { correct: 0, total: 0 },
+            "Arrangement": { correct: 0, total: 0 },
+            "Group18": { correct: 0, total: 0 },
+            "Group1": { correct: 0, total: 0 },
+            "Group17": { correct: 0, total: 0 },
+            "Period3": { correct: 0, total: 0 },
+            "TransitionElements": { correct: 0, total: 0 }
+        };
+        availableQuestions = [...originalQuestions];
+        currentQuestionObj = null;
+        answered = false;
+        explanationArea.style.display = 'none';
+        nextBtn.disabled = true;
+        disableOptions(false);
+    }
+    
+    function startGame(difficulty) {
+        resetGame();
+        currentDifficulty = difficulty;
+        difficultyLabel.innerText = difficulty.toUpperCase();
+        gameActive = true;
+        startScreenDiv.style.display = 'none';
+        gameScreenDiv.style.display = 'block';
+        endScreenDiv.style.display = 'none';
+        initAudio();
+        loadNextQuestion().catch(e=>console.warn(e));
+    }
+    
+    // Event listeners
+    document.querySelectorAll('.difficulty-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentDifficulty = btn.dataset.diff;
+        });
+    });
+    
+    document.getElementById('startGameBtn').addEventListener('click', () => {
+        let diff = document.querySelector('.difficulty-btn.active').dataset.diff;
+        startGame(diff);
+    });
+    
+    nextBtn.addEventListener('click', async () => {
+        if (!gameActive) return;
+        if (!nextBtn.disabled) {
+            loadNextQuestion();
+        }
+    });
+    
+    function restartAll() {
+        resetGame();
+        startScreenDiv.style.display = 'block';
+        gameScreenDiv.style.display = 'none';
+        endScreenDiv.style.display = 'none';
+    }
+    restartGameBtn.addEventListener('click', restartAll);
+    restartEndBtn.addEventListener('click', restartAll);
+    
+    totalQSpan.innerText = originalQuestions.length;  // 30
+    timerSpan.innerText = TIME_PER_QUESTION;
+</script>
+</body>
+</html>
+```
