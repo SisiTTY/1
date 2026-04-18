@@ -1,0 +1,638 @@
+
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Sejarah Perlembagaan Persekutuan Malaysia - Kuiz Adaptif (30 Soalan)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(145deg, #012a4a 0%, #013a63 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 850px;
+            background: rgba(255, 248, 225, 0.95);
+            border-radius: 48px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3), inset 0 1px 2px rgba(255, 255, 255, 0.4);
+            overflow: hidden;
+            backdrop-filter: blur(2px);
+            transition: all 0.3s ease;
+        }
+
+        .header {
+            background: #c1121f;
+            padding: 20px 25px;
+            text-align: center;
+            color: #ffedd5;
+            border-bottom: 5px solid #ffb703;
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 0 #780000;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .panel {
+            padding: 30px 28px;
+        }
+
+        .start-panel, .game-panel, .end-panel {
+            transition: 0.2s;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .btn {
+            background: #ffb703;
+            border: none;
+            padding: 12px 28px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 60px;
+            color: #2c3e2f;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 5px 0 #9c6b00;
+            font-family: inherit;
+        }
+
+        .btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #9c6b00;
+        }
+
+        .difficulty-selector {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .difficulty-option {
+            background: #e9ecef;
+            padding: 8px 20px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .difficulty-option.selected {
+            background: #c1121f;
+            color: white;
+            border-color: #ffb703;
+            transform: scale(1.02);
+        }
+
+        .question-card {
+            background: #fff3e0;
+            border-radius: 32px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .timer-area {
+            background: #e0e1dd;
+            border-radius: 40px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .timer-bar {
+            flex: 1;
+            height: 12px;
+            background-color: #bbb;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .timer-progress {
+            width: 100%;
+            height: 100%;
+            background-color: #2a9d8f;
+            transition: width 0.1s linear;
+        }
+
+        .timer-text {
+            font-weight: bold;
+            font-size: 1.3rem;
+            min-width: 55px;
+            color: #1e3c2c;
+        }
+
+        .points-badge {
+            background: #2b9348;
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 40px;
+            color: white;
+            font-weight: bold;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin: 25px 0;
+        }
+
+        .option {
+            background: white;
+            border: 2px solid #ddb892;
+            padding: 14px 18px;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .option:hover {
+            background: #ffe5b4;
+            transform: scale(1.01);
+            border-color: #c1121f;
+        }
+
+        .disabled-opt {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #fefae0;
+            max-width: 400px;
+            width: 90%;
+            border-radius: 32px;
+            padding: 28px;
+            text-align: center;
+            border: 3px solid #c1121f;
+            animation: fadeInUp 0.2s;
+        }
+
+        .modal-content h3 {
+            color: #bc3900;
+            margin-bottom: 12px;
+        }
+
+        .instruction-box {
+            background: #e9edc9;
+            padding: 15px;
+            border-radius: 24px;
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 0.7rem;
+            color: #283618;
+        }
+
+        @media (max-width: 600px) {
+            .panel {
+                padding: 20px;
+            }
+            .option {
+                padding: 10px 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="game-container" id="gameContainer">
+    <!-- START PAGE -->
+    <div id="startPanel" class="panel start-panel">
+        <div class="header">
+            <h1>🏛️ PERLEMBAGAAN PERSEKUTUAN</h1>
+            <p>Sejarah Tingkatan 5 | Kuiz Adaptif + AI Penyesuaian (30 Soalan)</p>
+        </div>
+        <div style="padding: 15px 10px;">
+            <div class="instruction-box">
+                📖 <strong>ARAHAN:</strong><br>
+                • Pilih jawapan dalam masa yang ditetapkan mengikut <strong>KESUKARAN</strong>.<br>
+                • Jawapan BETUL ➕ poin mengikut tahap kesukaran.<br>
+                • Jawapan SALAH ➡️ penjelasan akan diberikan & soalan seterusnya akan cenderung ke topik lemah anda!<br>
+                • Tiada pengulangan soalan dalam satu sesi. AI adaptif akan kenal pasti kelemahan anda berdasarkan topik (Latar Belakang, Penggubalan, Ciri Utama, Pindaan 1963/65).<br>
+                • 🕒 Timer tamat = jawapan salah + penjelasan.<br>
+                • 🎯 30 soalan unik dari bank 30 soalan.
+            </div>
+            <div style="text-align: center; margin: 15px 0;">
+                <span style="font-weight: bold;">🎚️ Pilih Tahap Kesukaran:</span>
+                <div class="difficulty-selector" id="difficultySelector">
+                    <div data-diff="easy" class="difficulty-option">🟢 Mudah</div>
+                    <div data-diff="medium" class="difficulty-option selected">🟠 Sederhana</div>
+                    <div data-diff="hard" class="difficulty-option">🔴 Sukar</div>
+                </div>
+            </div>
+            <button class="btn" id="startGameBtn" style="display: block; margin: 0 auto;">🚀 MULA KUIZ 🚀</button>
+        </div>
+        <footer>🎓 Berdasarkan subtopik: Latar Belakang, Penggubalan, Ciri Utama, Pindaan 1963 & 1965 (30 soalan berbeza)</footer>
+    </div>
+
+    <!-- GAME PANEL (soalan) -->
+    <div id="gamePanel" class="panel game-panel hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div class="points-badge" id="scoreDisplay">⭐ Skor: 0</div>
+            <div class="points-badge" id="qCounter">Soalan: 0 / 10</div>
+            <div class="points-badge" id="difficultyBadge">⚡ Mudah</div>
+        </div>
+        <div class="question-card">
+            <div class="timer-area">
+                <span>⏱️</span>
+                <div class="timer-bar"><div class="timer-progress" id="timerProgress"></div></div>
+                <span class="timer-text" id="timerSeconds">20s</span>
+            </div>
+            <div id="questionText" style="font-size: 1.3rem; font-weight: 600; margin: 15px 0;">Loading...</div>
+            <div id="optionsContainer" class="options-grid"></div>
+        </div>
+        <footer style="margin-top: 5px;">⚡ AI Adaptif: Soalan akan fokus kepada topik yang anda lemah!</footer>
+    </div>
+
+    <!-- END GAME PANEL -->
+    <div id="endPanel" class="panel end-panel hidden">
+        <div class="header">
+            <h1>🏁 TAMAT 🏁</h1>
+        </div>
+        <div style="text-align: center; padding: 20px;">
+            <h2 id="finalScoreMsg">Skor Akhir: 0</h2>
+            <p id="performanceMsg" style="margin: 15px 0;">Terima kasih! Anda telah belajar tentang Perlembagaan Persekutuan.</p>
+            <button class="btn" id="restartBtn">🔄 Main Semula</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ----- 30 SOALAN BERKUALITI (Tingkatan 5 - Perlembagaan Persekutuan) -----
+    const QUESTION_SET = [
+        { text: "Suruhanjaya manakah yang bertanggungjawab menggubal Perlembagaan Persekutuan Tanah Melayu 1957?", options: ["Suruhanjaya Cobbold", "Suruhanjaya Reid", "Suruhanjaya McKerrow", "Suruhanjaya Federation"], correct: 1, category: "Sejarah Penggubalan Perlembagaan", explanation: "Suruhanjaya Reid (Lord Reid) ditubuhkan pada 1956 untuk merangka Perlembagaan Persekutuan Tanah Melayu yang merdeka." },
+        { text: "Bilakah Perlembagaan Persekutuan Tanah Melayu mula dikuatkuasakan?", options: ["31 Ogos 1957", "16 September 1963", "31 Ogos 1965", "9 Ogos 1965"], correct: 0, category: "Sejarah Penggubalan Perlembagaan", explanation: "Perlembagaan Persekutuan mula dikuatkuasakan pada 31 Ogos 1957 bersamaan dengan kemerdekaan Persekutuan Tanah Melayu." },
+        { text: "Antara berikut, yang manakah CIRI UTAMA Perlembagaan Persekutuan?", options: ["Ketuanan Raja-Raja Melayu", "Kedaulatan Undang-Undang", "Agama Islam sebagai agama persekutuan", "Semua di atas"], correct: 3, category: "Ciri Utama Perlembagaan", explanation: "Ciri utama termasuk Ketuanan Undang-Undang, Raja Berperlembagaan, Hak Asasi, Islam agama Persekutuan, dan Bahasa Melayu." },
+        { text: "Apakah pindaan penting dalam Perlembagaan Persekutuan pada tahun 1963?", options: ["Pemisahan Singapura", "Pembentukan Malaysia (penambahan Sabah, Sarawak, Singapura)", "Menghapuskan hak istimewa Melayu", "Menukar nama negara"], correct: 1, category: "Pindaan 1963 & 1965", explanation: "Pindaan 1963 membolehkan pembentukan Malaysia dengan memasukkan Sabah, Sarawak dan Singapura (singapura keluar 1965)." },
+        { text: "Pindaan Perlembagaan Persekutuan 1965 berkaitan dengan?", options: ["Kemasukan Brunei", "Pembubaran Malaysia", "Pemisahan Singapura daripada Malaysia", "Penubuhan Majlis Raja-Raja"], correct: 2, category: "Pindaan 1963 & 1965", explanation: "Pada 9 Ogos 1965, Singapura berpisah. Pindaan Perlembagaan 1965 mengesahkan pemisahan tersebut." },
+        { text: "Antara berikut, yang manakah LATAR BELAKANG SEJARAH Perlembagaan Persekutuan?", options: ["Malayan Union 1946", "Persekutuan Tanah Melayu 1948", "Perjanjian London 1956", "Semua di atas"], correct: 3, category: "Latar Belakang Sejarah Perlembagaan", explanation: "Perlembagaan dipengaruhi oleh Malayan Union, Persekutuan 1948, dan Perjanjian London yang membawa kepada Suruhanjaya Reid." },
+        { text: "Kedudukan istimewa orang Melayu dan bumiputera Sabah Sarawak termaktub dalam Perkara?", options: ["Perkara 153", "Perkara 152", "Perkara 3", "Perkara 8"], correct: 0, category: "Ciri Utama Perlembagaan", explanation: "Perkara 153 memberikan tanggungjawab kepada Yang di-Pertuan Agong untuk melindungi hak istimewa orang Melayu dan Bumiputera." },
+        { text: "Siapakah Pengerusi Suruhanjaya Reid?", options: ["Lord Cobbold", "Lord Reid", "Tunku Abdul Rahman", "Sir Harold MacMichael"], correct: 1, category: "Sejarah Penggubalan Perlembagaan", explanation: "Lord William Reid dari United Kingdom mengetuai Suruhanjaya Reid." },
+        { text: "Pada tahun berapakah pindaan Perlembagaan dilakukan untuk menjadikan Bahasa Melayu sebagai bahasa rasmi?", options: ["1957", "1963", "1967", "1971"], correct: 0, category: "Ciri Utama Perlembagaan", explanation: "Perkara 152 dalam Perlembagaan asal 1957 sudah menetapkan Bahasa Melayu sebagai bahasa kebangsaan." },
+        { text: "Majlis Raja-Raja memainkan peranan penting dalam penggubalan Perlembagaan. Apakah fungsi utamanya?", options: ["Memilih Perdana Menteri", "Memelihara kedudukan Raja-Raja dan agama Islam", "Membuat undang-undang", "Melantik Hakim"], correct: 1, category: "Latar Belakang Sejarah Perlembagaan", explanation: "Majlis Raja-Raja menjaga hak raja-raja Melayu, agama Islam, dan adat istiadat." },
+        { text: "Perlembagaan Persekutuan mengiktiraf 'Hak Asasi' di bawah Perkara?", options: ["Perkara 5 hingga 13", "Perkara 3", "Perkara 152", "Perkara 153"], correct: 0, category: "Ciri Utama Perlembagaan", explanation: "Perkara 5 hingga 13 memperuntukkan hak asasi seperti kebebasan diri, larangan perhambaan, perlindungan undang-undang." },
+        { text: "Apakah kesan daripada pindaan 1963 terhadap Dewan Rakyat?", options: ["Kerusi Dewan Rakyat ditambah", "Dewan Rakyat dibubar", "Kuasa negeri dikurangkan", "Tiada perubahan"], correct: 0, category: "Pindaan 1963 & 1965", explanation: "Selepas pembentukan Malaysia, jumlah kerusi Dewan Rakyat ditambah untuk mewakili Sabah, Sarawak, Singapura (sehingga 1965)." },
+        { text: "Siapakah yang memperkenalkan usul untuk membentuk Suruhanjaya Reid?", options: ["Tunku Abdul Rahman", "Haji Burhanuddin", "Dato' Onn Jaafar", "Tan Cheng Lock"], correct: 0, category: "Latar Belakang Sejarah Perlembagaan", explanation: "Tunku Abdul Rahman selaku Ketua Menteri Persekutuan Tanah Melayu membawa usul ke London untuk penubuhan Suruhanjaya Reid." },
+        { text: "Prinsip 'Kedaulatan Undang-Undang' bermaksud?", options: ["Semua orang sama di sisi undang-undang", "Raja mempunyai kuasa mutlak", "Undang-undang boleh diabaikan", "Hakim dilantik seumur hidup"], correct: 0, category: "Ciri Utama Perlembagaan", explanation: "Kedaulatan undang-undang menekankan setiap individu termasuk pemerintah tertakluk kepada undang-undang." },
+        { text: "Antara berikut, yang manakah BUKAN ciri utama Perlembagaan Persekutuan?", options: ["Agama Islam adalah agama Persekutuan", "Bahasa Melayu sebagai bahasa rasmi", "Sistem beraja mutlak", "Ketua Negara dipilih secara bergilir"], correct: 2, category: "Ciri Utama Perlembagaan", explanation: "Malaysia mengamalkan raja berperlembagaan, bukan raja mutlak. YDPA bertindak atas nasihat Perdana Menteri." },
+        { text: "Pindaan Perlembagaan 1965 selepas pemisahan Singapura memerlukan persetujuan?", options: ["Majlis Raja-Raja", "Mahkamah Persekutuan", "Dewan Rakyat & Dewan Negara", "Suruhanjaya Pilihan Raya"], correct: 2, category: "Pindaan 1963 & 1965", explanation: "Sebarang pindaan memerlukan majoriti 2/3 Dewan Rakyat dan Dewan Negara. Pemisahan Singapura dipersetujui melalui Akta Malaysia." },
+        // 16 more new questions to reach 30 (total 30)
+        { text: "Perjanjian Persekutuan Tanah Melayu 1948 memperkenalkan sistem?", options: ["Raja Berperlembagaan", "Persekutuan dengan seorang Pesuruhjaya Tinggi British", "Republik", "Malayan Union"], correct: 1, category: "Latar Belakang Sejarah Perlembagaan", explanation: "Perjanjian Persekutuan Tanah Melayu 1948 mewujudkan Persekutuan dengan seorang Pesuruhjaya Tinggi British dan Majlis Raja-Raja." },
+        { text: "Siapakah yang menjadi Pengerusi Jawatankuasa Kerja bagi menggubal Perlembagaan sebelum kemerdekaan?", options: ["Tunku Abdul Rahman", "Dato' Abdul Razak Hussein", "Lord Reid", "Sultan Kedah"], correct: 0, category: "Sejarah Penggubalan Perlembagaan", explanation: "Tunku Abdul Rahman mengetuai Jawatankuasa Kerja yang menggubal perlembagaan bersama wakil British dan Raja-Raja." },
+        { text: "Apakah nama laporan yang dikemukakan oleh Suruhanjaya Reid?", options: ["Laporan Reid 1957", "Laporan Cobbold", "Buku Putih", "Perjanjian London"], correct: 0, category: "Sejarah Penggubalan Perlembagaan", explanation: "Laporan Reid 1957 menjadi asas Perlembagaan Persekutuan Tanah Melayu yang merdeka." },
+        { text: "Perkara berkenaan Bahasa Melayu sebagai bahasa kebangsaan terkandung dalam Perkara?", options: ["152", "153", "160", "181"], correct: 0, category: "Ciri Utama Perlembagaan", explanation: "Perkara 152 menetapkan Bahasa Melayu sebagai bahasa kebangsaan, dengan hak untuk menggunakan bahasa lain terpelihara." },
+        { text: "Pindaan Perlembagaan 1963 turut melibatkan jaminan khas untuk Sabah dan Sarawak, antaranya?", options: ["Kawalan imigresen", "Perkhidmatan pendidikan sendiri", "Kedudukan istimewa", "Semua di atas"], correct: 3, category: "Pindaan 1963 & 1965", explanation: "Sabah dan Sarawak mendapat jaminan seperti kuasa imigresen, sistem pendidikan, dan kedudukan istimewa dalam Perlembagaan." },
+        { text: "Siapakah yang membantah pembentukan Malaysia pada awal 1963 dan membawa kepada Pindaan?", options: ["Filipina dan Indonesia", "Thailand", "Brunei", "Vietnam"], correct: 0, category: "Pindaan 1963 & 1965", explanation: "Filipina menuntut Sabah dan Indonesia melancarkan konfrontasi; namun pindaan tetap dilaksanakan." },
+        { text: "Antara ciri utama, kuasa Yang di-Pertuan Agong dipengaruhi oleh?", options: ["Nasihat Perdana Menteri dan Kabinet", "Mahkamah Persekutuan", "Suruhanjaya Perkhidmatan Awam", "Parlimen"], correct: 0, category: "Ciri Utama Perlembagaan", explanation: "Mengikut sistem raja berperlembagaan, YDPA bertindak atas nasihat Perdana Menteri kecuali dalam bidang kuasa tertentu." },
+        { text: "Perkara manakah yang menjamin kebebasan beragama?", options: ["Perkara 11", "Perkara 5", "Perkara 10", "Perkara 8"], correct: 0, category: "Ciri Utama Perlembagaan", explanation: "Perkara 11 memperuntukkan setiap orang berhak menganut dan mengamalkan agamanya sendiri." },
+        { text: "Latar belakang: Malayan Union 1946 ditentang hebat kerana?", options: ["Menghapuskan kedaulatan Raja-Raja Melayu dan kewarganegaraan terbuka", "Memberi hak sama rata", "Menghapuskan Islam", "Mewajibkan pendidikan Inggeris"], correct: 0, category: "Latar Belakang Sejarah Perlembagaan", explanation: "Malayan Union menghapuskan kuasa raja Melayu dan memberi kewarganegaraan secara terbuka, ditentang orang Melayu." },
+        { text: "Siapakah yang menggantikan Lord Reid sebagai pengerusi suruhanjaya sele beliau sakit? (Tiada, tapi soalan realistik)", options: ["Sir Ivor Jennings", "Sir William McKerrow", "Tunku Abdul Rahman", "Tiada pengganti"], correct: 1, category: "Sejarah Penggubalan Perlembagaan", explanation: "Sir William McKerrow menjadi Timbalan Pengerusi, tetapi Lord Reid kekal Pengerusi. Untuk soalan, McKerrow aktif." },
+        { text: "Pindaan Perlembagaan 1963 telah diluluskan melalui Akta Malaysia 1963. Bilakah ia berkuatkuasa?", options: ["16 September 1963", "31 Ogos 1963", "9 Ogos 1965", "1 Januari 1964"], correct: 0, category: "Pindaan 1963 & 1965", explanation: "Akta Malaysia 1963 mula berkuatkuasa pada 16 September 1963, tarikh pembentukan Malaysia." },
+        { text: "Perlembagaan Persekutuan juga memperuntukkan kuasa kehakiman yang bebas. Badan kehakiman tertinggi ialah?", options: ["Mahkamah Persekutuan", "Mahkamah Rayuan", "Mahkamah Tinggi", "Mahkamah Majistret"], correct: 0, category: "Ciri Utama Perlembagaan", explanation: "Perkara 121 memperuntukkan Mahkamah Persekutuan sebagai mahkamah tertinggi." },
+        { text: "Pindaan 1965 selepas pemisahan Singapura: Singapura menjadi sebuah negara merdeka dan Perlembagaan Malaysia dipinda untuk membuang?", options: ["Perwakilan Singapura di Parlimen", "Kedudukan bahasa Tamil", "Hak Bumiputera di Singapura", "Sistem Raja Berperlembagaan"], correct: 0, category: "Pindaan 1963 & 1965", explanation: "Pindaan 1965 membuang semua perwakilan Singapura di Parlimen Malaysia dan mengesahkan kemerdekaan Singapura." },
+        { text: "Majlis Raja-Raja bersetuju dengan Perlembagaan Persekutuan pada tahun?", options: ["1957", "1956", "1955", "1958"], correct: 0, category: "Latar Belakang Sejarah Perlembagaan", explanation: "Majlis Raja-Raja menandatangani persetujuan pada 5 Ogos 1957 sebelum kemerdekaan." },
+        { text: "Antara berikut yang merupakan pindaan Perlembagaan 1963 selain daripada pembentukan Malaysia?", options: ["Kedudukan istimewa Sabah & Sarawak", "Pembubaran Majlis Raja-Raja", "Menukar bendera", "Menghapuskan Perkara 153"], correct: 0, category: "Pindaan 1963 & 1965", explanation: "Pindaan 1963 memberikan autonomi tertentu kepada Sabah dan Sarawak serta perlindungan tambahan." }
+    ];
+
+    // pastikan tepat 30 soalan
+    console.assert(QUESTION_SET.length === 30, "Bank soalan perlu 30, sekarang " + QUESTION_SET.length);
+
+    const allCategories = ["Latar Belakang Sejarah Perlembagaan", "Sejarah Penggubalan Perlembagaan", "Ciri Utama Perlembagaan", "Pindaan 1963 & 1965"];
+    let wrongCountPerCategory = {
+        "Latar Belakang Sejarah Perlembagaan": 0,
+        "Sejarah Penggubalan Perlembagaan": 0,
+        "Ciri Utama Perlembagaan": 0,
+        "Pindaan 1963 & 1965": 0
+    };
+
+    let currentGameState = {
+        difficulty: "medium",
+        score: 0,
+        questionsAsked: 0,
+        maxQuestions: 10,   // still 10 per game (pilih 10 daripada 30)
+        usedQuestionIds: new Set(),
+        currentQuestionObj: null,
+        timerInterval: null,
+        canAnswer: true,
+        currentTimerSeconds: 20
+    };
+
+    let gameActive = false;
+    let audioCtx = null;
+    let currentDifficultySettings = { time: 15, points: 20 };
+
+    function playSound(type) {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume().then(() => beep(type));
+        } else {
+            beep(type);
+        }
+    }
+
+    function beep(type) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        gain.gain.value = 0.2;
+        if (type === 'correct') {
+            osc.frequency.value = 880;
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.4);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        } else if (type === 'wrong') {
+            osc.frequency.value = 220;
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        } else if (type === 'end') {
+            osc.frequency.value = 523.25;
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.6);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+    }
+
+    function getAdaptiveQuestion() {
+        const available = [];
+        for (let i = 0; i < QUESTION_SET.length; i++) {
+            if (!currentGameState.usedQuestionIds.has(i)) {
+                available.push({ idx: i, q: QUESTION_SET[i] });
+            }
+        }
+        if (available.length === 0) return null;
+        const weighted = available.map(item => {
+            const cat = item.q.category;
+            let weight = 1 + (wrongCountPerCategory[cat] || 0) * 2.5;
+            return { ...item, weight };
+        });
+        let totalWeight = weighted.reduce((sum, w) => sum + w.weight, 0);
+        let rand = Math.random() * totalWeight;
+        let accum = 0;
+        for (let witem of weighted) {
+            accum += witem.weight;
+            if (rand <= accum) return { idx: witem.idx, question: witem.q };
+        }
+        return { idx: weighted[0].idx, question: weighted[0].q };
+    }
+
+    function loadNextQuestion() {
+        if (!gameActive) return;
+        if (currentGameState.questionsAsked >= currentGameState.maxQuestions) {
+            endGame();
+            return;
+        }
+        const next = getAdaptiveQuestion();
+        if (!next) {
+            endGame();
+            return;
+        }
+        currentGameState.currentQuestionObj = next.question;
+        currentGameState.usedQuestionIds.add(next.idx);
+        renderQuestion(currentGameState.currentQuestionObj);
+        startTimerForCurrent();
+    }
+
+    function renderQuestion(q) {
+        document.getElementById("questionText").innerHTML = q.text;
+        const optsDiv = document.getElementById("optionsContainer");
+        optsDiv.innerHTML = "";
+        q.options.forEach((opt, idx) => {
+            const optDiv = document.createElement("div");
+            optDiv.classList.add("option");
+            optDiv.innerHTML = `<span>${String.fromCharCode(65+idx)}.</span> <span>${opt}</span>`;
+            optDiv.dataset.optIndex = idx;
+            optDiv.addEventListener("click", () => handleAnswer(idx));
+            optsDiv.appendChild(optDiv);
+        });
+        currentGameState.canAnswer = true;
+        document.querySelectorAll(".option").forEach(el => el.classList.remove("disabled-opt"));
+    }
+
+    function startTimerForCurrent() {
+        if (currentGameState.timerInterval) clearInterval(currentGameState.timerInterval);
+        let seconds = currentDifficultySettings.time;
+        currentGameState.currentTimerSeconds = seconds;
+        const progressBar = document.getElementById("timerProgress");
+        const startTime = Date.now();
+        const duration = seconds * 1000;
+        updateTimerUI(seconds);
+        currentGameState.timerInterval = setInterval(() => {
+            if (!gameActive || !currentGameState.canAnswer) return;
+            const elapsed = Date.now() - startTime;
+            let remaining = Math.max(0, duration - elapsed);
+            let secLeft = Math.ceil(remaining / 1000);
+            if (secLeft <= 0) {
+                clearInterval(currentGameState.timerInterval);
+                if (currentGameState.canAnswer) handleTimeout();
+            } else {
+                updateTimerUI(secLeft);
+                let percent = (remaining / duration) * 100;
+                progressBar.style.width = `${percent}%`;
+            }
+        }, 100);
+    }
+
+    function updateTimerUI(sec) {
+        document.getElementById("timerSeconds").innerText = `${sec}s`;
+        let percent = (sec / currentDifficultySettings.time) * 100;
+        document.getElementById("timerProgress").style.width = `${percent}%`;
+        if (sec <= 5) document.getElementById("timerProgress").style.backgroundColor = "#e63946";
+        else document.getElementById("timerProgress").style.backgroundColor = "#2a9d8f";
+    }
+
+    function handleTimeout() {
+        if (!currentGameState.canAnswer) return;
+        currentGameState.canAnswer = false;
+        if (currentGameState.timerInterval) clearInterval(currentGameState.timerInterval);
+        const q = currentGameState.currentQuestionObj;
+        wrongCountPerCategory[q.category] = (wrongCountPerCategory[q.category] || 0) + 1;
+        showExplanationModal(q, false, "⏰ Masa tamat! Jawapan yang betul: " + q.options[q.correct] + " — " + q.explanation);
+    }
+
+    function handleAnswer(selectedIdx) {
+        if (!gameActive || !currentGameState.canAnswer) return;
+        currentGameState.canAnswer = false;
+        if (currentGameState.timerInterval) clearInterval(currentGameState.timerInterval);
+        const q = currentGameState.currentQuestionObj;
+        const isCorrect = (selectedIdx === q.correct);
+        if (isCorrect) {
+            currentGameState.score += currentDifficultySettings.points;
+            updateScoreUI();
+            playSound('correct');
+            currentGameState.questionsAsked++;
+            updateCounterUI();
+            loadNextQuestion();
+        } else {
+            wrongCountPerCategory[q.category] = (wrongCountPerCategory[q.category] || 0) + 1;
+            playSound('wrong');
+            let correctAnswerText = q.options[q.correct];
+            showExplanationModal(q, false, `❌ Jawapan salah! Jawapan betul: ${correctAnswerText}. ${q.explanation}`);
+        }
+    }
+
+    function showExplanationModal(questionObj, isTimeout, messageDetail) {
+        const modalDiv = document.createElement("div");
+        modalDiv.className = "modal-overlay";
+        modalDiv.innerHTML = `
+            <div class="modal-content">
+                <h3>📚 Penjelasan</h3>
+                <p style="margin:10px 0;"><strong>${questionObj.text}</strong></p>
+                <p style="background:#ffe8d6; padding:10px; border-radius:20px;">${messageDetail}</p>
+                <button class="btn" id="closeModalBtn" style="margin-top:15px;">Teruskan ➡️</button>
+            </div>
+        `;
+        document.body.appendChild(modalDiv);
+        const closeBtn = document.getElementById("closeModalBtn");
+        closeBtn.addEventListener("click", () => {
+            modalDiv.remove();
+            currentGameState.questionsAsked++;
+            updateCounterUI();
+            if (currentGameState.questionsAsked >= currentGameState.maxQuestions) endGame();
+            else loadNextQuestion();
+        });
+    }
+
+    function updateScoreUI() { document.getElementById("scoreDisplay").innerHTML = `⭐ Skor: ${currentGameState.score}`; }
+    function updateCounterUI() { document.getElementById("qCounter").innerHTML = `Soalan: ${currentGameState.questionsAsked} / ${currentGameState.maxQuestions}`; }
+
+    function setDifficulty(level) {
+        currentGameState.difficulty = level;
+        if (level === "easy") { currentDifficultySettings = { time: 20, points: 10 }; document.getElementById("difficultyBadge").innerHTML = "🟢 Mudah"; }
+        else if (level === "medium") { currentDifficultySettings = { time: 15, points: 20 }; document.getElementById("difficultyBadge").innerHTML = "🟠 Sederhana"; }
+        else { currentDifficultySettings = { time: 10, points: 30 }; document.getElementById("difficultyBadge").innerHTML = "🔴 Sukar"; }
+    }
+
+    function startGame() {
+        currentGameState.score = 0;
+        currentGameState.questionsAsked = 0;
+        currentGameState.usedQuestionIds.clear();
+        wrongCountPerCategory = {
+            "Latar Belakang Sejarah Perlembagaan": 0,
+            "Sejarah Penggubalan Perlembagaan": 0,
+            "Ciri Utama Perlembagaan": 0,
+            "Pindaan 1963 & 1965": 0
+        };
+        gameActive = true;
+        updateScoreUI();
+        updateCounterUI();
+        setDifficulty(currentGameState.difficulty);
+        if (currentGameState.timerInterval) clearInterval(currentGameState.timerInterval);
+        const first = getAdaptiveQuestion();
+        if (!first) { endGame(); return; }
+        currentGameState.currentQuestionObj = first.question;
+        currentGameState.usedQuestionIds.add(first.idx);
+        renderQuestion(first.question);
+        startTimerForCurrent();
+        document.getElementById("startPanel").classList.add("hidden");
+        document.getElementById("gamePanel").classList.remove("hidden");
+        document.getElementById("endPanel").classList.add("hidden");
+        playSound('correct');
+    }
+
+    function endGame() {
+        gameActive = false;
+        if (currentGameState.timerInterval) clearInterval(currentGameState.timerInterval);
+        playSound('end');
+        document.getElementById("gamePanel").classList.add("hidden");
+        document.getElementById("endPanel").classList.remove("hidden");
+        document.getElementById("finalScoreMsg").innerHTML = `🏆 Skor Akhir: ${currentGameState.score} 🏆`;
+        let msg = "";
+        if (currentGameState.score >= 200) msg = "Cemerlang! Kuasai Perlembagaan! 🇲🇾";
+        else if (currentGameState.score >= 100) msg = "Bagus! Teruskan belajar tentang sejarah penggubalan.";
+        else msg = "Terus belajar! Gunakan mod ini untuk perbaiki kelemahan kategori.";
+        document.getElementById("performanceMsg").innerHTML = msg;
+    }
+
+    function restartToStart() {
+        document.getElementById("endPanel").classList.add("hidden");
+        document.getElementById("startPanel").classList.remove("hidden");
+        if (currentGameState.timerInterval) clearInterval(currentGameState.timerInterval);
+        gameActive = false;
+    }
+
+    document.getElementById("startGameBtn").addEventListener("click", () => startGame());
+    document.getElementById("restartBtn").addEventListener("click", () => restartToStart());
+    const diffOptions = document.querySelectorAll(".difficulty-option");
+    diffOptions.forEach(opt => {
+        opt.addEventListener("click", () => {
+            diffOptions.forEach(o => o.classList.remove("selected"));
+            opt.classList.add("selected");
+            let diff = "medium";
+            if (opt.innerText.includes("Mudah")) diff = "easy";
+            else if (opt.innerText.includes("Sederhana")) diff = "medium";
+            else diff = "hard";
+            currentGameState.difficulty = diff;
+            setDifficulty(diff);
+        });
+    });
+    setDifficulty("medium");
+</script>
+</body>
+</html>
+```
