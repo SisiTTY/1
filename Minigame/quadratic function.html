@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Quadratic Master: 25-Question Adaptive Quiz | Form 4 Add Maths</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: linear-gradient(145deg, #0b2b26 0%, #0a1f1c 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Poppins', 'Inter', system-ui, -apple-system, 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .game-wrapper {
+            max-width: 1300px;
+            width: 100%;
+            background: rgba(255,255,240,0.1);
+            backdrop-filter: blur(3px);
+            border-radius: 4rem;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.2);
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .panel {
+            background: #fef9e8;
+            border-radius: 2.5rem;
+            padding: 1.2rem 2rem;
+            box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+            transition: 0.2s;
+        }
+
+        .start-screen, .end-screen {
+            text-align: center;
+        }
+
+        .game-screen {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            background: linear-gradient(135deg, #2c5f2d, #97bc62);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+            margin: 0.2rem 0;
+        }
+
+        .sub {
+            color: #2c3e2f;
+            font-weight: 600;
+        }
+
+        button {
+            background: #2c5f2d;
+            border: none;
+            padding: 12px 28px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 60px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 0 #1a3a1a;
+            margin: 6px;
+        }
+
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #1a3a1a;
+        }
+
+        .option-btn {
+            background: #e9e3d0;
+            color: #1f3b1a;
+            box-shadow: 0 3px 0 #b9aa82;
+            width: 100%;
+            text-align: left;
+            font-weight: 500;
+            margin: 8px 0;
+            padding: 14px 18px;
+            font-size: 1rem;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background: #d9d0b5;
+            transform: scale(0.98);
+        }
+
+        .next-btn {
+            background: #d68c3c;
+            box-shadow: 0 5px 0 #8b4c1c;
+            font-size: 1.2rem;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            background: #1f2b1a;
+            border-radius: 2rem;
+            padding: 10px 20px;
+            color: #f2e8cf;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .mastery-panel {
+            background: #d9d0b1;
+            border-radius: 1.8rem;
+            padding: 10px 15px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .topic-mastery {
+            background: #2c3e2f;
+            border-radius: 30px;
+            padding: 4px 12px;
+            color: #ffefcf;
+            font-weight: 500;
+        }
+
+        .explanation {
+            background: #e9e3cf;
+            border-left: 8px solid #d68c3c;
+            padding: 12px 20px;
+            border-radius: 28px;
+            font-size: 0.9rem;
+        }
+
+        canvas {
+            background: #f0ecd8;
+            border-radius: 32px;
+            width: 100%;
+            height: 100px;
+            margin-top: 6px;
+            box-shadow: inset 0 0 8px #aaa5;
+        }
+
+        .graphic-area {
+            text-align: center;
+        }
+
+        @media (max-width: 700px) {
+            .panel { padding: 1rem; }
+            h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-wrapper" id="gameRoot"></div>
+
+<script>
+    // ----- EXACTLY 25 UNIQUE QUESTIONS (Quadratic Equations, Inequalities, Roots, Functions) -----
+    const QUESTION_SET_25 = [
+        { id: 0, topic: "Quadratic Equations", difficulty: 1, text: "Solve: x² - 7x + 12 = 0", options: ["x = 3,4", "x = -3,-4", "x = 2,6", "x = -2,-6"], correct: 0, explanation: "Factor: (x-3)(x-4)=0 → x=3 or x=4." },
+        { id: 1, topic: "Quadratic Equations", difficulty: 2, text: "Solve (2x-1)(x+3)=0", options: ["x=½, -3", "x= -½, 3", "x=1, -3", "x= -1, 3"], correct: 0, explanation: "Set each factor zero: 2x-1=0 → x=½ ; x+3=0 → x=-3." },
+        { id: 2, topic: "Types of Roots", difficulty: 1, text: "For x² + 6x + 9 = 0, the nature of roots is:", options: ["Two distinct real roots", "Two equal real roots", "No real roots", "Complex conjugates"], correct: 1, explanation: "Discriminant Δ = 36 - 36 = 0 → real and equal roots." },
+        { id: 3, topic: "Types of Roots", difficulty: 2, text: "Find discriminant of 2x² - 4x + 3 = 0", options: ["8", "-8", "16", "0"], correct: 1, explanation: "Δ = b²-4ac = (-4)² - 4(2)(3) = 16 - 24 = -8 → negative, no real roots." },
+        { id: 4, topic: "Quadratic Inequalities", difficulty: 2, text: "Solve x² - 5x + 6 > 0", options: ["x < 2 or x > 3", "2 < x < 3", "x < -2 or x > 3", "-3 < x < -2"], correct: 0, explanation: "Factor (x-2)(x-3)>0 → critical points 2,3, test intervals → x<2 or x>3." },
+        { id: 5, topic: "Quadratic Inequalities", difficulty: 3, text: "Solve -x² + 3x + 4 ≥ 0", options: ["-1 ≤ x ≤ 4", "x ≤ -1 or x ≥ 4", "x ≥ 4", "x ≤ -1"], correct: 0, explanation: "Multiply by -1: x² -3x -4 ≤0 → (x-4)(x+1)≤0 → -1 ≤ x ≤ 4." },
+        { id: 6, topic: "Quadratic Functions", difficulty: 1, text: "What is the axis of symmetry of f(x)= x² - 4x + 1?", options: ["x = 2", "x = -2", "x = 4", "x = -4"], correct: 0, explanation: "Axis: x = -b/(2a) = -(-4)/(2*1)= 4/2 =2." },
+        { id: 7, topic: "Quadratic Functions", difficulty: 2, text: "Vertex of f(x) = 2x² - 8x + 5 is:", options: ["(2, -3)", "( -2, 13)", "(2, 5)", "(4, 5)"], correct: 0, explanation: "h = -b/(2a)=8/4=2, k=f(2)=8-16+5=-3 → (2,-3)." },
+        { id: 8, topic: "Types of Roots", difficulty: 2, text: "If the quadratic x² + kx + 4 = 0 has equal roots, find k.", options: ["k = ±4", "k = 4", "k = -4", "k = 0"], correct: 0, explanation: "Δ = k² - 16 = 0 → k²=16 → k=±4." },
+        { id: 9, topic: "Quadratic Equations", difficulty: 3, text: "Solve 3x² + 5x - 2 = 0", options: ["x = 1/3, -2", "x = -1/3, 2", "x = 2/3, -1", "x = -2/3, 1"], correct: 0, explanation: "(3x-1)(x+2)=0 → x=1/3, x=-2." },
+        { id: 10, topic: "Quadratic Functions", difficulty: 2, text: "Range of f(x)= x² + 2x + 5 (minimum value)", options: ["y ≥ 4", "y ≥ 1", "y ≥ 5", "y ≥ 0"], correct: 0, explanation: "Complete square: (x+1)²+4 → min =4, so range y≥4." },
+        { id: 11, topic: "Quadratic Inequalities", difficulty: 3, text: "Solve x² - 9 ≤ 0", options: ["-3 ≤ x ≤ 3", "x ≤ -3 or x ≥ 3", "x ≥ 3", "x ≤ -3"], correct: 0, explanation: "(x-3)(x+3)≤0 → between roots: [-3,3]." },
+        { id: 12, topic: "Types of Roots", difficulty: 1, text: "For x² - 2x + 5 = 0, the roots are:", options: ["Real & distinct", "Real & equal", "Complex (no real)", "Rational"], correct: 2, explanation: "Δ = 4 - 20 = -16 < 0 → no real roots, complex." },
+        { id: 13, topic: "Quadratic Functions", difficulty: 3, text: "Minimum point of y = 2(x+3)² - 5 is:", options: ["(-3, -5)", "(3, -5)", "(-3, 5)", "(3,5)"], correct: 0, explanation: "Vertex form: (h,k)=(-3,-5) → min point." },
+        { id: 14, topic: "Quadratic Equations", difficulty: 2, text: "Solve by formula: 2x² - 3x - 2 = 0", options: ["x=2, -0.5", "x=-2, 0.5", "x=1.5, -1", "x= -2, 1"], correct: 0, explanation: "x = [3 ± √(9+16)]/4 = [3±5]/4 → x=2, -0.5." },
+        { id: 15, topic: "Quadratic Inequalities", difficulty: 2, text: "Solution set for x² + x - 6 < 0", options: ["-3 < x < 2", "x < -3 or x > 2", "x > 2", "x < -3"], correct: 0, explanation: "(x+3)(x-2)<0 → between -3 and 2." },
+        { id: 16, topic: "Types of Roots", difficulty: 2, text: "Which value of k gives real and distinct roots for x² + kx + 1 = 0?", options: ["|k| > 2", "k = 2", "k < 2", "k = 1"], correct: 0, explanation: "Δ = k² - 4 > 0 → k² >4 → |k|>2." },
+        { id: 17, topic: "Quadratic Functions", difficulty: 3, text: "Find the range of f(x)= -x² + 2x + 3", options: ["y ≤ 4", "y ≥ 4", "y ≤ 3", "y ≥ 1"], correct: 0, explanation: "Vertex: x=1, f(1)=4, parabola opens down → max 4 → y ≤ 4." },
+        { id: 18, topic: "Quadratic Equations", difficulty: 2, text: "Sum of roots of 3x² - 6x + 2 = 0", options: ["2", "-2", "2/3", "-2/3"], correct: 0, explanation: "Sum = -b/a = 6/3 = 2." },
+        { id: 19, topic: "Quadratic Inequalities", difficulty: 3, text: "Solve x² - 4x + 4 > 0", options: ["x ≠ 2", "x = 2", "All real numbers", "No solution"], correct: 0, explanation: "(x-2)² > 0 → true for all x ≠ 2." },
+        { id: 20, topic: "Quadratic Equations", difficulty: 1, text: "Solve x² = 9", options: ["x = ±3", "x = 3", "x = -3", "x = 9"], correct: 0, explanation: "Take square root: x = ±3." },
+        { id: 21, topic: "Types of Roots", difficulty: 3, text: "The equation x² + 4x + c = 0 has no real roots. Which is true?", options: ["c > 4", "c < 4", "c = 4", "c = 0"], correct: 0, explanation: "Δ = 16 - 4c < 0 → 16 < 4c → c > 4." },
+        { id: 22, topic: "Quadratic Functions", difficulty: 2, text: "The y-intercept of f(x)= -3x² + 5x - 2 is:", options: ["-2", "2", "5", "-3"], correct: 0, explanation: "Set x=0 → f(0) = -2." },
+        { id: 23, topic: "Quadratic Inequalities", difficulty: 2, text: "Solve 2x² - 8x ≤ 0", options: ["0 ≤ x ≤ 4", "x ≤ 0 or x ≥ 4", "x ≥ 4", "x ≤ 0"], correct: 0, explanation: "2x(x-4) ≤ 0 → critical points 0,4 → between 0 and 4 inclusive." },
+        { id: 24, topic: "Quadratic Equations", difficulty: 3, text: "One root of x² - 5x + k = 0 is 2. Find k.", options: ["6", "-6", "10", "-10"], correct: 0, explanation: "Substitute x=2: 4 - 10 + k = 0 → k = 6." }
+    ];
+
+    // ------------------- GAME STATE -------------------
+    let gameActive = false;
+    let currentQuestion = null;
+    let points = 0;
+    let answered = false;
+    let awaitingNext = false;
+    let totalAttempts = 0;         // number of questions answered so far (max 25)
+    let remainingQuestions = [];    // array of questions not yet used (no repeats)
+    let currentDynamicDifficulty = 2;   // 1,2,3 (auto-adjusted based on accuracy)
+    let performanceStats = {};       // per topic mastery
+    let lastAccuracyWindow = [];      // last 5 results (1=correct, 0=wrong)
+    
+    let rootElement;
+    let currentScreen = "start";
+    
+    // Sound utils
+    let audioCtx = null;
+    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    function playSound(type) {
+        if (!audioCtx) initAudio();
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        gain.gain.value = 0.2;
+        if (type === 'correct') {
+            osc.frequency.value = 880;
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        } else if (type === 'wrong') {
+            osc.frequency.value = 440;
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.6);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+    }
+
+    // Topic mastery management
+    const topicsList = ["Quadratic Equations", "Types of Roots", "Quadratic Inequalities", "Quadratic Functions"];
+    function initPerformance() {
+        topicsList.forEach(t => { performanceStats[t] = { correct: 0, wrong: 0, mastery: 0 }; });
+    }
+    function updateMastery(topic, isCorrect) {
+        if (!performanceStats[topic]) performanceStats[topic] = { correct: 0, wrong: 0, mastery: 0 };
+        if (isCorrect) performanceStats[topic].correct++;
+        else performanceStats[topic].wrong++;
+        const total = performanceStats[topic].correct + performanceStats[topic].wrong;
+        performanceStats[topic].mastery = total === 0 ? 0 : performanceStats[topic].correct / total;
+    }
+    function getWeakestTopicPriority() {
+        let weakest = topicsList[0];
+        let minMastery = performanceStats[weakest]?.mastery ?? 1;
+        for (let t of topicsList) {
+            let m = performanceStats[t]?.mastery ?? 0.5;
+            if (m < minMastery) { minMastery = m; weakest = t; }
+        }
+        return { topic: weakest, mastery: minMastery };
+    }
+    
+    // Dynamic difficulty based on recent accuracy
+    function adjustDifficulty() {
+        if (lastAccuracyWindow.length < 3) return;
+        const avg = lastAccuracyWindow.reduce((a,b)=>a+b,0)/lastAccuracyWindow.length;
+        if (avg >= 0.75 && currentDynamicDifficulty < 3) currentDynamicDifficulty++;
+        else if (avg <= 0.4 && currentDynamicDifficulty > 1) currentDynamicDifficulty--;
+        currentDynamicDifficulty = Math.min(3, Math.max(1, currentDynamicDifficulty));
+    }
+    
+    // Adaptive selection: picks next question from remaining based on weak topics + difficulty match
+    function selectNextQuestion() {
+        if (!gameActive) return null;
+        if (remainingQuestions.length === 0) return null;
+        
+        const targetDiff = currentDynamicDifficulty;
+        const weakTopicObj = getWeakestTopicPriority();
+        const weakTopic = weakTopicObj.topic;
+        
+        // Weighted selection: weakness factor (low mastery -> higher weight) + difficulty closeness
+        let candidates = remainingQuestions.map(q => {
+            let weight = 1.0;
+            let topicMastery = performanceStats[q.topic]?.mastery ?? 0.5;
+            let weaknessBonus = (1 - topicMastery) * 2.8;  // boost weak topics
+            let diffMatch = 1 - Math.abs(q.difficulty - targetDiff) * 0.35;
+            weight = weaknessBonus + diffMatch + 0.8;
+            if (q.topic === weakTopic) weight += 1.3;      // extra priority for weakest topic
+            return { q, weight };
+        });
+        
+        let totalWeight = candidates.reduce((sum, c) => sum + c.weight, 0);
+        let rand = Math.random() * totalWeight;
+        let selected = null;
+        for (let c of candidates) {
+            rand -= c.weight;
+            if (rand <= 0) { selected = c.q; break; }
+        }
+        if (!selected && candidates.length) selected = candidates[0].q;
+        return selected;
+    }
+    
+    // Remove question from remaining array (no repeats)
+    function removeQuestionFromRemaining(qId) {
+        const idx = remainingQuestions.findIndex(q => q.id === qId);
+        if (idx !== -1) remainingQuestions.splice(idx, 1);
+    }
+    
+    // Initialize fresh game: remaining = all 25 questions, reset stats
+    function initGame() {
+        gameActive = true;
+        points = 0;
+        totalAttempts = 0;
+        answered = false;
+        awaitingNext = false;
+        currentDynamicDifficulty = 2;
+        lastAccuracyWindow = [];
+        initPerformance();
+        // Copy all questions to remaining (each used exactly once)
+        remainingQuestions = [...QUESTION_SET_25];
+        currentScreen = 'game';
+        loadNewQuestion();
+        render();
+    }
+    
+    function loadNewQuestion() {
+        if (!gameActive) return;
+        if (remainingQuestions.length === 0) {
+            // All 25 questions answered
+            endGameSession();
+            return;
+        }
+        const nextQ = selectNextQuestion();
+        if (!nextQ) { endGameSession(); return; }
+        currentQuestion = { ...nextQ };
+        answered = false;
+        awaitingNext = false;
+        render();
+    }
+    
+    function handleAnswer(selectedIdx) {
+        if (!gameActive || answered || awaitingNext) return;
+        const isCorrect = (selectedIdx === currentQuestion.correct);
+        const topic = currentQuestion.topic;
+        const difficulty = currentQuestion.difficulty;
+        answered = true;
+        let pointsEarned = 0;
+        if (isCorrect) {
+            pointsEarned = 10 + (difficulty * 5);
+            points += pointsEarned;
+            playSound('correct');
+            updateMastery(topic, true);
+            lastAccuracyWindow.push(1);
+        } else {
+            playSound('wrong');
+            updateMastery(topic, false);
+            lastAccuracyWindow.push(0);
+        }
+        totalAttempts++;
+        if (lastAccuracyWindow.length > 6) lastAccuracyWindow.shift();
+        adjustDifficulty();   // AI dynamic difficulty update
+        
+        // Remove this question from remaining (no repeats ever)
+        removeQuestionFromRemaining(currentQuestion.id);
+        
+        // Show feedback and then next button
+        awaitingNext = true;
+        render(); 
+        
+        // After answering, check if this was the last question (remaining becomes empty)
+        if (remainingQuestions.length === 0) {
+            // Game will end after user clicks next, but we can automatically end after next
+            // We'll keep state, end after next click
+        }
+    }
+    
+    function nextQuestionHandler() {
+        if (!gameActive || !awaitingNext) return;
+        // If no questions left, end game
+        if (remainingQuestions.length === 0) {
+            endGameSession();
+            return;
+        }
+        loadNewQuestion();
+    }
+    
+    function endGameSession() {
+        gameActive = false;
+        currentScreen = 'end';
+        render();
+    }
+    
+    // ------------------- RENDERING -------------------
+    function render() {
+        if (currentScreen === 'start') renderStartScreen();
+        else if (currentScreen === 'game') renderGameScreen();
+        else if (currentScreen === 'end') renderEndScreen();
+    }
+    
+    function drawQuadraticSample(canvas) {
+        const ctx = canvas.getContext('2d');
+        canvas.width = 400; canvas.height = 120;
+        ctx.fillStyle = "#efe6ce"; ctx.fillRect(0,0,400,120);
+        ctx.beginPath();
+        for(let x=-100; x<=100; x+=2){
+            let y = -0.002*(x-0)*(x-80) + 60;
+            let px = (x+100)/200 * 400;
+            let py = 90 - (y/2);
+            if(x===-100) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.strokeStyle = "#2c5f2d"; ctx.lineWidth=2.5; ctx.stroke();
+        ctx.fillStyle = "#bc6f2c"; ctx.font="bold 12px monospace";
+        ctx.fillText("y = a(x-h)²+k", 20, 25);
+    }
+    
+    function renderStartScreen() {
+        rootElement.innerHTML = `
+            <div class="panel start-screen">
+                <h1>📐 QUADRATIC MASTER</h1>
+                <p class="sub">Form 4 Add Maths • 25 unique quizzes • Adaptive AI</p>
+                <div style="margin:20px 0;">
+                    <canvas id="graphCanvas" width="400" height="120" style="width:100%; max-width:400px; height:auto; background:#efe6ce; border-radius:32px;"></canvas>
+                </div>
+                <div style="background:#f5f0e0; border-radius:28px; padding:15px; text-align:left;">
+                    <h3>📖 INSTRUCTIONS</h3>
+                    <ul style="text-align:left;">
+                        <li>📌 25 unique questions: Quadratic Equations, Inequalities, Types of Roots, Functions.</li>
+                        <li>🎯 Points based on difficulty (correct = 10 + diff*5).</li>
+                        <li>🤖 AI tracks your performance per topic → <strong>weak topics are prioritized</strong> in upcoming questions.</li>
+                        <li>⚙️ Difficulty auto-adjusts (Easy/Medium/Hard) based on recent accuracy.</li>
+                        <li>🔁 No repeats — each of the 25 questions appears exactly once.</li>
+                        <li>🔊 Sound feedback for correct/wrong answers.</li>
+                        <li>📈 Mastery percentage computed live for each subtopic.</li>
+                        <li>💡 Wrong answers show step-by-step explanation + correct answer.</li>
+                        <li>🏁 Game ends automatically after all 25 questions (right or wrong).</li>
+                    </ul>
+                </div>
+                <button id="startGameBtn" style="margin-top: 20px; background:#2f6b2f;">🚀 START 25-QUESTION QUIZ</button>
+            </div>
+        `;
+        const canvas = document.getElementById('graphCanvas');
+        if(canvas) drawQuadraticSample(canvas);
+        document.getElementById('startGameBtn')?.addEventListener('click', () => {
+            if (audioCtx?.state === 'suspended') audioCtx.resume();
+            initGame();
+        });
+    }
+    
+    function renderGameScreen() {
+        if (!currentQuestion) { loadNewQuestion(); return; }
+        const masteryDisplay = topicsList.map(t => `${t.substring(0,12)}: ${Math.round((performanceStats[t]?.mastery || 0)*100)}%`).join(' • ');
+        const weakTopic = getWeakestTopicPriority().topic;
+        const questionsLeft = remainingQuestions.length;
+        
+        const optionsHtml = currentQuestion.options.map((opt, idx) => {
+            let styleBg = "";
+            let disabledAttr = answered ? "disabled" : "";
+            if (answered) {
+                if (idx === currentQuestion.correct) styleBg = "background: #97bc62; color:white; box-shadow:none;";
+                else if (idx === currentQuestion.clickedIdx && idx !== currentQuestion.correct) styleBg = "background:#d9534f; color:white;";
+                else styleBg = "opacity:0.6;";
+            }
+            return `<button class="option-btn" data-idx="${idx}" ${disabledAttr} style="${styleBg}">${String.fromCharCode(65+idx)}. ${opt}</button>`;
+        }).join('');
+        
+        const explanationHtml = answered ? `
+            <div class="explanation">
+                <strong>${(currentQuestion.correct === currentQuestion.clickedIdx) ? '✅ Correct!' : '❌ Oops! That was incorrect.'}</strong><br>
+                <strong>🔍 Step-by-step:</strong> ${currentQuestion.explanation}<br>
+                ${(currentQuestion.correct !== currentQuestion.clickedIdx) ? `<span>✔️ Correct answer: ${currentQuestion.options[currentQuestion.correct]}</span>` : ''}
+            </div>
+        ` : `<div class="explanation" style="background:#f2ecd9;">✨ Choose an option to see detailed analysis.</div>`;
+        
+        const nextButtonHtml = (awaitingNext && !answered) ? "" : (awaitingNext ? `<button id="nextBtn" class="next-btn">➡️ NEXT QUESTION (${questionsLeft} left)</button>` : "");
+        
+        rootElement.innerHTML = `
+            <div class="game-screen">
+                <div class="stats">
+                    <span>⭐ POINTS: ${points}</span>
+                    <span>🎯 DIFFICULTY: ${'★'.repeat(currentDynamicDifficulty)}${'☆'.repeat(3-currentDynamicDifficulty)} (Lv${currentDynamicDifficulty})</span>
+                    <span>🤖 WEAK TOPIC: ${weakTopic}</span>
+                    <span>📋 QUIZZES LEFT: ${questionsLeft}/25</span>
+                    <button id="endGameBtn" style="background:#a1421a; padding:6px 18px;">🏁 END EARLY</button>
+                </div>
+                <div class="panel" style="padding:1.5rem;">
+                    <h3>📌 ${currentQuestion.topic}  (Difficulty ${currentQuestion.difficulty})</h3>
+                    <p style="font-size:1.4rem; font-weight:bold;">${currentQuestion.text}</p>
+                    <div id="optionsContainer">${optionsHtml}</div>
+                    ${explanationHtml}
+                    <div style="margin-top:15px; display:flex; justify-content:center;">${nextButtonHtml}</div>
+                </div>
+                <div class="mastery-panel">
+                    🧠 MASTERY LEVELS: ${masteryDisplay}
+                </div>
+                <div class="graphic-area">
+                    <canvas id="dynamicGraph" width="400" height="80" style="width:100%; max-width:450px; height:auto;"></canvas>
+                </div>
+            </div>
+        `;
+        
+        const opts = document.querySelectorAll('.option-btn');
+        opts.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (answered || awaitingNext) return;
+                const idx = parseInt(btn.getAttribute('data-idx'));
+                currentQuestion.clickedIdx = idx;
+                handleAnswer(idx);
+            });
+        });
+        const endBtn = document.getElementById('endGameBtn');
+        if (endBtn) endBtn.onclick = () => endGameSession();
+        const nextBtn = document.getElementById('nextBtn');
+        if (nextBtn) nextBtn.onclick = () => nextQuestionHandler();
+        
+        const canvasGr = document.getElementById('dynamicGraph');
+        if(canvasGr) drawQuadraticSample(canvasGr);
+    }
+    
+    function renderEndScreen() {
+        let totalMastery = 0;
+        let masterySummary = topicsList.map(t => {
+            let m = performanceStats[t]?.mastery || 0;
+            totalMastery += m;
+            return `<div class="topic-mastery">${t}: ${Math.round(m*100)}%</div>`;
+        }).join('');
+        const finalAvgMastery = topicsList.length ? Math.round((totalMastery/topicsList.length)*100) : 0;
+        rootElement.innerHTML = `
+            <div class="panel end-screen">
+                <h1>🏆 GAME COMPLETED 🏆</h1>
+                <p style="font-size:1.5rem;">Total Points: ${points}</p>
+                <p>Total Questions Answered: ${totalAttempts} / 25 | Avg Mastery: ${finalAvgMastery}%</p>
+                <div style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:20px;">${masterySummary}</div>
+                <p>✨ Adaptive AI prioritized your weak topics, difficulty auto-adjusted. Every question used exactly once.</p>
+                <button id="restartBtn">🔄 PLAY AGAIN (25 fresh questions)</button>
+                <button id="homeBtn">🏠 HOME / START</button>
+            </div>
+        `;
+        document.getElementById('restartBtn')?.addEventListener('click', () => { initGame(); });
+        document.getElementById('homeBtn')?.addEventListener('click', () => { currentScreen = 'start'; render(); });
+    }
+    
+    // Bootstrap
+    rootElement = document.getElementById('gameRoot');
+    initPerformance();
+    renderStartScreen();
+    document.body.addEventListener('click', () => { if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); });
+</script>
+</body>
+</html>
+```
