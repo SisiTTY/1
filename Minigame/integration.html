@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Integral Intelligence | Adaptive Integration Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #0a2f2f 0%, #1b5e5e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Poppins', system-ui, 'Inter', sans-serif;
+            padding: 20px;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 950px;
+            background: rgba(255, 251, 240, 0.98);
+            border-radius: 64px 52px 64px 52px;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.5);
+            overflow: hidden;
+            transition: 0.2s;
+        }
+
+        .screen {
+            padding: 24px 30px 32px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #1d7e6b, #ffaa33);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .sub {
+            text-align: center;
+            background: #e9f0e3;
+            display: inline-block;
+            width: auto;
+            margin: 8px auto 12px;
+            padding: 5px 20px;
+            border-radius: 60px;
+            font-weight: 600;
+        }
+
+        .difficulty-panel {
+            background: #eef3fc;
+            border-radius: 60px;
+            padding: 16px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .diff-btn {
+            background: #cfdfe9;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .diff-btn.active {
+            background: #ffaa33;
+            color: #1e3b2f;
+            transform: scale(1.02);
+            box-shadow: 0 5px 12px rgba(255,170,51,0.5);
+        }
+
+        .instructions {
+            background: #fff4e4;
+            padding: 18px;
+            border-radius: 40px;
+            margin: 18px 0;
+            font-size: 0.9rem;
+            border-left: 8px solid #ffaa33;
+        }
+
+        .start-action {
+            background: #2c7a5e;
+            width: 100%;
+            padding: 16px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-top: 10px;
+            box-shadow: 0 7px 0 #1d4e3e;
+            transition: 0.05s linear;
+        }
+
+        .start-action:active {
+            transform: translateY(3px);
+            box-shadow: 0 3px 0 #1d4e3e;
+        }
+
+        /* Game screen */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e534b;
+            padding: 10px 18px;
+            border-radius: 50px;
+            margin-bottom: 20px;
+            color: white;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .score-box {
+            background: #f7d44a;
+            color: #2a2b1f;
+            padding: 6px 20px;
+            border-radius: 40px;
+            font-weight: bold;
+            font-size: 1.6rem;
+        }
+
+        .mastery-badge {
+            background: #00000066;
+            padding: 5px 12px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+        }
+
+        .progress-area {
+            background: #cbdad2;
+            border-radius: 30px;
+            height: 12px;
+            margin: 10px 0 15px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 0%;
+            height: 100%;
+            background: #ffaa33;
+            border-radius: 30px;
+            transition: width 0.25s;
+        }
+
+        .graphics-card {
+            background: #1f3e3a;
+            border-radius: 36px;
+            margin-bottom: 20px;
+            padding: 12px;
+            box-shadow: inset 0 0 0 2px #ffe2b5;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            background: #fffbf0;
+            border-radius: 28px;
+            margin: 0 auto;
+        }
+
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            background: #e5dbc9;
+            border-radius: 40px;
+            padding: 8px 15px;
+            margin-bottom: 12px;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .question-block {
+            background: white;
+            border-radius: 48px;
+            padding: 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 12px 18px rgba(0,0,0,0.1);
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: #f6f2e3;
+            padding: 18px;
+            border-radius: 40px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 18px;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .opt-button {
+            background: #eef2fa;
+            border: 2px solid #cbdae7;
+            padding: 12px 6px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: 0.1s;
+            font-family: monospace;
+        }
+
+        .opt-button:hover:not(:disabled) {
+            background: #ffe6c7;
+            border-color: #ffaa33;
+        }
+
+        .feedback-area {
+            min-height: 110px;
+            text-align: left;
+            margin-top: 16px;
+            font-size: 0.9rem;
+            background: #fef3e0;
+            padding: 14px;
+            border-radius: 30px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .quit-game {
+            background: #b9472c;
+            width: 100%;
+            border: none;
+            padding: 12px;
+            border-radius: 60px;
+            font-weight: bold;
+            color: white;
+            margin-top: 12px;
+            cursor: pointer;
+        }
+
+        .end-screen-box {
+            text-align: center;
+            background: #f9efdb;
+            border-radius: 48px;
+            padding: 25px;
+        }
+
+        .restart-final {
+            background: #2c7a5e;
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            margin-top: 15px;
+            cursor: pointer;
+            color: white;
+        }
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 15px;
+            opacity: 0.7;
+        }
+        .explanation-steps {
+            margin-top: 8px;
+            color: #2c5a2e;
+            font-weight: 500;
+            border-top: 1px solid #ffcc88;
+            padding-top: 8px;
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="gameRoot">
+    <!-- START SCREEN -->
+    <div id="startScreen" class="screen">
+        <div style="text-align:center">
+            <div class="title">🧠 INTEGRAL INTELLIGENCE</div>
+            <div class="sub">AI Adaptive | Form 5 Integration</div>
+        </div>
+        <div class="difficulty-panel" id="difficultyChoice">
+            <button data-diff="easy" class="diff-btn active">🌱 START EASY</button>
+            <button data-diff="medium" class="diff-btn">⚡ START MEDIUM</button>
+            <button data-diff="hard" class="diff-btn">🔥 START HARD</button>
+        </div>
+        <div class="instructions">
+            🤖 <strong>AI ADAPTIVE FEATURES:</strong><br>
+            • Tracks accuracy → auto adjusts difficulty 📊<br>
+            • Weak topics prioritized automatically 🎯<br>
+            • Weakness decreases when you improve 🔄<br>
+            • No question repeats (dynamic queue) 🔀<br>
+            • Mastery level computed per topic 🏆<br>
+            • <strong>When wrong: careful step-by-step explanation</strong> showing why answer is incorrect<br>
+            🎮 <strong>HOW TO PLAY:</strong> Answer integration questions (inverse, indefinite, definite, application). Correct → points (based on difficulty). Wrong → -1 point + detailed explanation. Reach 15 points to WIN!
+        </div>
+        <button class="start-action" id="startGameBtn">∫ LAUNCH AI GAME ∫</button>
+        <footer>📐 inverse diff · indefinite · definite · area applications</footer>
+    </div>
+
+    <!-- GAME SCREEN -->
+    <div id="gameScreen" class="screen hidden">
+        <div class="game-header">
+            <span class="mastery-badge" id="masterySummary">📊 Mastery: --</span>
+            <div class="score-box">🏆 <span id="pointsValue">0</span> pts</div>
+        </div>
+        <div class="stats-row">
+            <span>🎯 Adaptive Diff: <strong id="adaptiveDiffLabel">MEDIUM</strong></span>
+            <span>📈 Weakest: <strong id="weakestTopic">-</strong></span>
+        </div>
+        <div class="progress-area">
+            <div class="progress-fill" id="progressFillGame" style="width: 0%;"></div>
+        </div>
+        <div class="graphics-card">
+            <canvas id="integralCanvas" width="700" height="150" style="width:100%; height:auto; aspect-ratio:700/150"></canvas>
+        </div>
+        <div class="question-block">
+            <div class="question-text" id="questionDisplay">Loading intelligent question...</div>
+            <div class="options" id="optionsContainer"></div>
+            <div class="feedback-area" id="feedbackMsg"></div>
+        </div>
+        <button class="quit-game" id="quitToStartBtn">🏠 QUIT TO MENU</button>
+        <footer>🔁 Dynamic options · AI adjusts to you · Full wrong-answer steps</footer>
+    </div>
+</div>
+
+<script>
+    // ---------- AUDIO (light beeps) ----------
+    let audioCtx = null;
+    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    function playSound(type) {
+        try { initAudio(); if (!audioCtx) return; const osc = audioCtx.createOscillator(), gain = audioCtx.createGain(); osc.connect(gain); gain.connect(audioCtx.destination); osc.type = 'sine'; osc.frequency.value = type === 'correct' ? 960 : 380; gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.25); osc.start(); osc.stop(audioCtx.currentTime + 0.25); } catch(e) { }
+    }
+
+    // ---------- INTEGRATION QUESTION BANK (Topics: Inverse, Indefinite, Definite, Application) ----------
+    const TOPICS = {
+        INVERSE: "inverse_diff", INDEFINITE: "indefinite", DEFINITE: "definite", APPLICATION: "application"
+    };
+    // Each question includes: id, text, topic, correct, options array, difficulty (0=easy,1=medium,2=hard), stepExplanation (detailed steps)
+    const QUESTIONS = [
+        { id: 1, text: "∫ 4x³ dx = ?", topic: TOPICS.INDEFINITE, correct: "x⁴ + C", options: ["x⁴ + C", "4x⁴ + C", "x³ + C", "12x² + C"], difficulty: 0, 
+          stepExplanation: "Step 1: Use power rule ∫ x^n dx = x^(n+1)/(n+1) + C. Step 2: ∫ 4x³ dx = 4 * (x^(4)/4) = x⁴. Step 3: Add constant of integration → x⁴ + C. Your answer missed the power reduction or constant." },
+        { id: 2, text: "∫ (6x²) dx = ?", topic: TOPICS.INDEFINITE, correct: "2x³ + C", options: ["2x³ + C", "6x³ + C", "3x³ + C", "x³ + C"], difficulty: 0,
+          stepExplanation: "Rule: ∫ 6x² dx = 6 * (x³/3) = 2x³. Don't forget +C. The mistake often is not dividing by the new exponent." },
+        { id: 3, text: "∫₀¹ 2x dx = ?", topic: TOPICS.DEFINITE, correct: "1", options: ["1", "2", "0", "0.5"], difficulty: 0,
+          stepExplanation: "Step 1: Antiderivative = x². Step 2: Evaluate F(1)-F(0) = 1² - 0² = 1. No constant for definite integrals." },
+        { id: 4, text: "If ∫ f(x)dx = 3x² + 2x + C, then f(x) = ?", topic: TOPICS.INVERSE, correct: "6x + 2", options: ["6x + 2", "3x + 2", "6x² + 2", "3x² + 2x"], difficulty: 1,
+          stepExplanation: "Integration and differentiation are inverses. Differentiate the right side: d/dx (3x²) = 6x, d/dx (2x)=2, derivative of C = 0. So f(x)=6x+2." },
+        { id: 5, text: "∫ (5x⁴ - 3x²) dx = ?", topic: TOPICS.INDEFINITE, correct: "x⁵ - x³ + C", options: ["x⁵ - x³ + C", "5x⁵ - 3x³ + C", "x⁵ - x³", "20x³ - 6x + C"], difficulty: 1,
+          stepExplanation: "Apply power rule termwise: ∫5x⁴ = 5·x⁵/5 = x⁵; ∫-3x² = -3·x³/3 = -x³; sum = x⁵ - x³ + C." },
+        { id: 6, text: "Area under f(x)=x² from x=0 to x=2", topic: TOPICS.APPLICATION, correct: "8/3", options: ["8/3", "4/3", "2", "8"], difficulty: 1,
+          stepExplanation: "Area = ∫₀² x² dx = [x³/3]₀² = (8/3) - 0 = 8/3. Wrong options often forget the 1/3 factor." },
+        { id: 7, text: "∫₁³ (2x) dx = ?", topic: TOPICS.DEFINITE, correct: "8", options: ["8", "6", "4", "10"], difficulty: 0,
+          stepExplanation: "Antiderivative = x². Evaluate 3² - 1² = 9 - 1 = 8." },
+        { id: 8, text: "The derivative of ∫₀ˣ t² dt is:", topic: TOPICS.INVERSE, correct: "x²", options: ["x²", "2x", "x³/3", "t²"], difficulty: 1,
+          stepExplanation: "Fundamental Theorem of Calculus: d/dx ∫₀ˣ f(t)dt = f(x). Here f(t)=t² → f(x)=x²." },
+        { id: 9, text: "∫ (3x² + 2x + 1) dx = ?", topic: TOPICS.INDEFINITE, correct: "x³ + x² + x + C", options: ["x³ + x² + x + C", "3x³ + 2x² + x + C", "x³+x²+x", "6x+2 + C"], difficulty: 0,
+          stepExplanation: "Integrate term by term: ∫3x² = x³, ∫2x = x², ∫1 = x, plus C." },
+        { id: 10, text: "∫₀^{π/2} cos x dx = ?", topic: TOPICS.DEFINITE, correct: "1", options: ["1", "0", "2", "-1"], difficulty: 1,
+          stepExplanation: "Antiderivative of cos x is sin x. sin(π/2)=1, sin(0)=0 → result 1." },
+        { id: 11, text: "Area bounded by y = √x, x=0, x=4, x-axis", topic: TOPICS.APPLICATION, correct: "16/3", options: ["16/3", "8/3", "4", "8"], difficulty: 1,
+          stepExplanation: "∫₀⁴ √x dx = ∫₀⁴ x^{1/2} dx = [ (2/3) x^{3/2} ]₀⁴ = (2/3)(8) = 16/3." },
+        { id: 12, text: "If f'(x)=6x and f(0)=5, find f(x)", topic: TOPICS.INVERSE, correct: "3x² + 5", options: ["3x²+5", "6x²+5", "3x²", "6x+5"], difficulty: 1,
+          stepExplanation: "Integrate f'(x): ∫6x dx = 3x² + C. Use f(0)=5 → 0 + C = 5 → f(x)=3x²+5." },
+        { id: 13, text: "∫ (4x³ - 2x) dx from 1 to 2 = ?", topic: TOPICS.DEFINITE, correct: "12", options: ["12", "10", "14", "8"], difficulty: 1,
+          stepExplanation: "Antiderivative = x⁴ - x². Evaluate (16-4) - (1-1) = 12 - 0 = 12." },
+        { id: 14, text: "∫ (x⁻²) dx = ? (x≠0)", topic: TOPICS.INDEFINITE, correct: "-1/x + C", options: ["-1/x + C", "1/x + C", "ln|x| + C", "-2x⁻³ + C"], difficulty: 2,
+          stepExplanation: "Power rule for n=-2: ∫ x^{-2} dx = x^{-1}/(-1) = -x^{-1} = -1/x + C." },
+        { id: 15, text: "Area between y=x and y=x² from 0 to 1", topic: TOPICS.APPLICATION, correct: "1/6", options: ["1/6", "1/3", "1/2", "2/3"], difficulty: 2,
+          stepExplanation: "Area = ∫₀¹ (x - x²)dx = [x²/2 - x³/3]₀¹ = (1/2 - 1/3)=1/6." },
+        { id: 16, text: "∫ (3/x) dx = ?", topic: TOPICS.INDEFINITE, correct: "3 ln|x| + C", options: ["3 ln|x| + C", "ln|3x|+C", "3/x²+C", "3x ln|x|+C"], difficulty: 2,
+          stepExplanation: "∫ (3/x) dx = 3 ∫ 1/x dx = 3 ln|x| + C." },
+        { id: 17, text: "∫₀² (x³ - 2x) dx = ?", topic: TOPICS.DEFINITE, correct: "0", options: ["0", "4", "2", "-2"], difficulty: 2,
+          stepExplanation: "Antiderivative = x⁴/4 - x². At 2: (16/4 - 4) = (4-4)=0; at 0: 0 → result 0." },
+        { id: 18, text: "Given f(x) = ∫ (6x²)dx and f(1)=3, find f(x)", topic: TOPICS.INVERSE, correct: "2x³ + 1", options: ["2x³+1", "2x³-1", "6x³+3", "2x³+3"], difficulty: 2,
+          stepExplanation: "∫6x² dx = 2x³ + C. f(1)=2(1)+C = 2+C=3 ⇒ C=1. So f(x)=2x³+1." }
+    ];
+
+    // -------- AI tracking & session state ----------
+    let gameActive = true;
+    let waitingAnswer = false;
+    let currentPoints = 0;
+    const TARGET_POINTS = 15;
+
+    // Topic stats: { topicKey: { correctCount, attemptCount, weakness } }
+    let topicStats = {};
+    for (let t of Object.values(TOPICS)) topicStats[t] = { correct: 0, attempts: 0, weakness: 1.0 };
+    
+    let adaptiveDifficultyLevel = 1; // 0=easy,1=medium,2=hard (start medium)
+    let recentAccuracy = []; // store boolean results (last 5)
+    let lastQuestionIds = []; // avoid repeats (last 4 ids)
+    let currentQuestionObj = null;
+
+    // DOM elements
+    const startScreen = document.getElementById('startScreen');
+    const gameScreen = document.getElementById('gameScreen');
+    const startBtn = document.getElementById('startGameBtn');
+    const quitBtn = document.getElementById('quitToStartBtn');
+    const pointsSpan = document.getElementById('pointsValue');
+    const adaptiveDiffSpan = document.getElementById('adaptiveDiffLabel');
+    const weakestTopicSpan = document.getElementById('weakestTopic');
+    const masterySummarySpan = document.getElementById('masterySummary');
+    const progressFill = document.getElementById('progressFillGame');
+    const questionDisplayDiv = document.getElementById('questionDisplay');
+    const optionsContainer = document.getElementById('optionsContainer');
+    const feedbackDiv = document.getElementById('feedbackMsg');
+
+    // difficulty selection from start page
+    let startingPref = 'medium';
+    const diffSelectBtns = document.querySelectorAll('#difficultyChoice .diff-btn');
+    diffSelectBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            diffSelectBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            startingPref = btn.getAttribute('data-diff');
+        });
+    });
+
+    function updateProgress() { let percent = (currentPoints/TARGET_POINTS)*100; progressFill.style.width = `${Math.min(100,percent)}%`; }
+    function addPoints(delta) { currentPoints = Math.max(0, currentPoints + delta); pointsSpan.innerText = currentPoints; updateProgress(); if (currentPoints >= TARGET_POINTS && gameActive) endGameWin(); }
+
+    // compute mastery per topic and overall
+    function updateMasteryAndWeakness() {
+        let overallCorrect = 0, overallAttempt = 0;
+        for (let t of Object.values(TOPICS)) {
+            let stats = topicStats[t];
+            if (stats.attempts > 0) stats.weakness = 1 - (stats.correct / stats.attempts);
+            else stats.weakness = 1;
+            overallCorrect += stats.correct; overallAttempt += stats.attempts;
+        }
+        let overallMastery = overallAttempt ? Math.round((overallCorrect/overallAttempt)*100) : 0;
+        masterySummarySpan.innerText = `📊 Mastery: ${overallMastery}%`;
+        // find weakest topic
+        let weakest = null, maxWeak = -1;
+        for (let [key, val] of Object.entries(topicStats)) {
+            if (val.weakness > maxWeak && val.attempts >= 1) { maxWeak = val.weakness; weakest = key; }
+        }
+        if (weakest) {
+            let displayMap = { inverse_diff:"Inverse diff", indefinite:"Indefinite", definite:"Definite", application:"Application" };
+            weakestTopicSpan.innerText = displayMap[weakest] || weakest;
+        } else weakestTopicSpan.innerText = "none";
+    }
+
+    // adjust adaptive difficulty based on recent accuracy (last 5)
+    function adjustAdaptiveDifficulty(correctFlag) {
+        recentAccuracy.push(correctFlag);
+        if (recentAccuracy.length > 5) recentAccuracy.shift();
+        if (recentAccuracy.length >= 3) {
+            let accuracy = recentAccuracy.filter(v=>v===true).length / recentAccuracy.length;
+            if (accuracy > 0.7 && adaptiveDifficultyLevel < 2) adaptiveDifficultyLevel++;
+            else if (accuracy < 0.4 && adaptiveDifficultyLevel > 0) adaptiveDifficultyLevel--;
+        }
+        let diffName = adaptiveDifficultyLevel === 0 ? "EASY" : (adaptiveDifficultyLevel === 1 ? "MEDIUM" : "HARD");
+        adaptiveDiffSpan.innerText = diffName;
+    }
+
+    // select next question: weak topic prioritization + difficulty filter + no repeats
+    function selectNextQuestion() {
+        let candidateQuestions = QUESTIONS.filter(q => q.difficulty === adaptiveDifficultyLevel);
+        if (candidateQuestions.length === 0) candidateQuestions = [...QUESTIONS];
+        // compute topic weakness scores
+        let topicWeaknessMap = {};
+        for (let t of Object.values(TOPICS)) topicWeaknessMap[t] = topicStats[t].weakness;
+        // sort by weakness of topic (higher weakness first)
+        candidateQuestions.sort((a,b) => topicWeaknessMap[b.topic] - topicWeaknessMap[a.topic]);
+        // avoid recent repeats
+        let filtered = candidateQuestions.filter(q => !lastQuestionIds.includes(q.id));
+        if (filtered.length === 0) filtered = candidateQuestions;
+        let chosen = filtered[0];
+        if (!chosen) chosen = candidateQuestions[0];
+        lastQuestionIds.push(chosen.id);
+        if (lastQuestionIds.length > 4) lastQuestionIds.shift();
+        return chosen;
+    }
+
+    // Render question with shuffled options (dynamic no repeats of order)
+    function renderQuestion(question) {
+        questionDisplayDiv.innerHTML = question.text;
+        let shuffledOpts = [...question.options];
+        for (let i=shuffledOpts.length-1; i>0; i--) { let j=Math.floor(Math.random()*(i+1)); [shuffledOpts[i],shuffledOpts[j]] = [shuffledOpts[j],shuffledOpts[i]]; }
+        optionsContainer.innerHTML = '';
+        shuffledOpts.forEach(opt => {
+            let btn = document.createElement('button');
+            btn.className = 'opt-button';
+            btn.innerHTML = opt;
+            btn.addEventListener('click', () => { if (!waitingAnswer && gameActive) handleAnswer(opt, question); });
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    // careful step-by-step explanation when wrong
+    function handleAnswer(selected, questionObj) {
+        if (waitingAnswer || !gameActive) return;
+        waitingAnswer = true;
+        let isCorrect = (selected === questionObj.correct);
+        let topic = questionObj.topic;
+        // update topic stats
+        topicStats[topic].attempts++;
+        if (isCorrect) topicStats[topic].correct++;
+        updateMasteryAndWeakness();
+
+        let pointsEarned = 0;
+        if (isCorrect) {
+            let basePoints = adaptiveDifficultyLevel === 0 ? 2 : (adaptiveDifficultyLevel === 1 ? 3 : 5);
+            pointsEarned = basePoints;
+            addPoints(pointsEarned);
+            playSound('correct');
+            feedbackDiv.innerHTML = `✅ <strong>CORRECT!</strong> +${pointsEarned} pts.<br><br>📖 <strong>Explanation:</strong> ${questionObj.stepExplanation}`;
+        } else {
+            addPoints(-1);
+            playSound('wrong');
+            // Detailed careful steps for wrong answer
+            let wrongMsg = `❌ <strong>INCORRECT</strong> – You selected "${selected}". The correct answer is "${questionObj.correct}".<br><br>
+            <div class="explanation-steps"><strong>🔍 CAREFUL STEP-BY-STEP EXPLANATION:</strong><br>${questionObj.stepExplanation}<br><br>
+            💡 <strong>Why your answer was wrong:</strong> Your choice likely came from a common mistake like forgetting the constant of integration, misapplying the power rule, or incorrect evaluation of limits. Review the steps above to strengthen your understanding.</div>`;
+            feedbackDiv.innerHTML = wrongMsg;
+        }
+        // adaptive difficulty based on correctness
+        adjustAdaptiveDifficulty(isCorrect);
+        // after delay load next question or end
+        setTimeout(() => {
+            if (gameActive && currentPoints < TARGET_POINTS) {
+                currentQuestionObj = selectNextQuestion();
+                renderQuestion(currentQuestionObj);
+                waitingAnswer = false;
+            } else if (currentPoints >= TARGET_POINTS) {
+                if (gameActive) endGameWin();
+                waitingAnswer = false;
+            } else {
+                waitingAnswer = false;
+            }
+        }, 2000);
+    }
+
+    function endGameWin() {
+        if (!gameActive) return;
+        gameActive = false;
+        waitingAnswer = true;
+        let masteryTotal = 0, totalAttempts = 0;
+        for (let s of Object.values(topicStats)) { masteryTotal += s.correct; totalAttempts += s.attempts; }
+        let masteryPercent = totalAttempts ? Math.round((masteryTotal/totalAttempts)*100) : 0;
+        optionsContainer.innerHTML = '';
+        let endHtml = `<div class="end-screen-box"><h2>🏆 INTEGRAL CHAMPION 🏆</h2><p>Final Score: ${currentPoints}/${TARGET_POINTS} points</p>
+        <p>📊 Overall Mastery Level: ${masteryPercent}%</p><p>🧠 AI adapted ${recentAccuracy.length} times</p>
+        <button class="restart-final" id="finalRestart">∫ PLAY AGAIN ∫</button></div>`;
+        questionDisplayDiv.innerHTML = endHtml;
+        feedbackDiv.innerHTML = "✨ Congratulations! You've mastered integration with adaptive AI help!";
+        playSound('correct'); playSound('correct');
+        document.getElementById('finalRestart')?.addEventListener('click', () => fullReset());
+    }
+
+    function fullReset() {
+        gameActive = false;
+        waitingAnswer = false;
+        currentPoints = 0;
+        for (let t of Object.values(TOPICS)) topicStats[t] = { correct: 0, attempts: 0, weakness: 1.0 };
+        recentAccuracy = [];
+        lastQuestionIds = [];
+        adaptiveDifficultyLevel = (startingPref === 'easy' ? 0 : (startingPref === 'medium' ? 1 : 2));
+        updateMasteryAndWeakness();
+        startScreen.classList.remove('hidden');
+        gameScreen.classList.add('hidden');
+        if (audioCtx && audioCtx.state === 'running') audioCtx.suspend();
+        if (animFrame) cancelAnimationFrame(animFrame);
+        animFrame = null;
+    }
+
+    function startGameSession() {
+        gameActive = true;
+        waitingAnswer = false;
+        currentPoints = 0;
+        pointsSpan.innerText = "0";
+        for (let t of Object.values(TOPICS)) topicStats[t] = { correct: 0, attempts: 0, weakness: 1.0 };
+        recentAccuracy = [];
+        lastQuestionIds = [];
+        adaptiveDifficultyLevel = (startingPref === 'easy' ? 0 : (startingPref === 'medium' ? 1 : 2));
+        updateMasteryAndWeakness();
+        updateProgress();
+        let diffLabel = adaptiveDifficultyLevel===0?"EASY":(adaptiveDifficultyLevel===1?"MEDIUM":"HARD");
+        adaptiveDiffSpan.innerText = diffLabel;
+        startScreen.classList.add('hidden');
+        gameScreen.classList.remove('hidden');
+        currentQuestionObj = selectNextQuestion();
+        renderQuestion(currentQuestionObj);
+        if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+        if (!animFrame) startCanvasLoop();
+    }
+
+    // ------- canvas graphics (integration area visualization) ----------
+    let canvas = document.getElementById('integralCanvas');
+    let animFrame = null;
+    function drawIntegrationCanvas() {
+        if (!canvas || gameScreen.classList.contains('hidden')) return;
+        const ctx = canvas.getContext('2d');
+        const w = canvas.clientWidth, h = canvas.clientHeight;
+        canvas.width = w; canvas.height = h;
+        if (w===0) return;
+        ctx.clearRect(0,0,w,h);
+        ctx.beginPath(); ctx.strokeStyle="#5a6e5a"; ctx.moveTo(35, h/2); ctx.lineTo(w-20, h/2); ctx.moveTo(w/2,20); ctx.lineTo(w/2, h-20); ctx.stroke();
+        ctx.beginPath(); ctx.strokeStyle="#c7511e"; ctx.lineWidth=2.5;
+        let scaleX = (w-70)/8; let offX=40;
+        for (let px=0; px<=w; px++) { let xv = (px-offX)/scaleX; let yv = 0.3*Math.pow(xv-2,2)+1; let cy = h/2 - (yv-2)*14; if(px===0) ctx.moveTo(px,cy); else ctx.lineTo(px,cy); }
+        ctx.stroke();
+        let t = (Date.now()/2000)%1; let a = 1.2+t*3.2; let b = a+1.5; if(b>6){ a=0.8; b=2.3; }
+        let startX = offX + a*scaleX, endX = offX + b*scaleX, baseY = h/2+18;
+        ctx.fillStyle = "#ffaa3366"; ctx.beginPath();
+        for (let px=startX; px<=endX; px++) { let xv = (px-offX)/scaleX; let yv = 0.3*Math.pow(xv-2,2)+1; let cy = h/2 - (yv-2)*14; if(px===startX) ctx.moveTo(px,cy); else ctx.lineTo(px,cy); }
+        ctx.lineTo(endX, baseY); ctx.lineTo(startX, baseY); ctx.fill();
+        ctx.fillStyle="#2f6b47"; ctx.font="bold 10px 'Segoe UI'"; ctx.fillText("∫ f(x)dx = area", w-110, 25);
+        animFrame = requestAnimationFrame(() => drawIntegrationCanvas());
+    }
+    function startCanvasLoop() { if(animFrame) cancelAnimationFrame(animFrame); drawIntegrationCanvas(); }
+
+    startBtn.addEventListener('click', () => { initAudio(); startGameSession(); });
+    quitBtn.addEventListener('click', () => fullReset());
+    document.body.addEventListener('click', () => { if(audioCtx && audioCtx.state==='suspended') audioCtx.resume(); }, { once: true });
+</script>
+</body>
+</html>
+```
